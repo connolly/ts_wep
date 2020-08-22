@@ -242,9 +242,11 @@ class SourceSelector(object):
         TypeError
             The database type is incorrect.
         """
-
-        if (not isinstance(self.db, LocalDatabaseForStarFile)):
-            raise TypeError("The database type is incorrect.")
+        if (not type(self.db) == LocalDatabaseForStarFile):
+            errorString = "The database type is incorrect."
+            errorString += " Received type: {} but expected type: {}".format(
+                type(self.db),LocalDatabaseForStarFile)
+            raise TypeError(errorString)
 
         # Map the reference filter to the G filter
         filterType = self.getFilter()
@@ -262,9 +264,11 @@ class SourceSelector(object):
 
     def getTargetStarFromImage(self, butlerRootPath, visitList, defocalState,
                                offset=0):
-
-        if (not isinstance(self.db, LocalDatabaseFromImage)):
-            raise TypeError("The database type is incorrect.")
+        if (not type(self.db) == LocalDatabaseFromImage):
+            errorString = "The database type is incorrect."
+            errorString += " Received type: {} but expected type: {}".format(
+                type(self.db),LocalDatabaseFromImage)
+            raise TypeError(errorString)
 
         filterType = self.getFilter()
         mappedFilterType = mapFilterRefToG(filterType)
@@ -285,9 +289,11 @@ class SourceSelector(object):
 
     def getTargetStarFromRefCat(self, butlerRootPath, visitList, defocalState,
                                 offset=0):
-
-        if (not isinstance(self.db, LocalDatabaseFromRefCat)):
-            raise TypeError("The database type is incorrect.")
+        if (not type(self.db) == LocalDatabaseFromRefCat):
+            errorString = "The database type is incorrect."
+            errorString += " Received type: {} but expected type: {}".format(
+                type(self.db),LocalDatabaseFromRefCat)
+            raise TypeError(errorString)
 
         filterType = self.getFilter()
         mappedFilterType = mapFilterRefToG(filterType)

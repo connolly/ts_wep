@@ -696,7 +696,7 @@ class WepController(object):
 			print('Since postageImgDir was not provided, we will save the donuts info to ')
 			print(postageImgDir)
 		outputFilePath = postageImgDir + fname
-       
+		print('Saving donut info to %s'%outputFilePath)
 		fid = open(outputFilePath, "w")
 		fid.write(content)
 		fid.close()

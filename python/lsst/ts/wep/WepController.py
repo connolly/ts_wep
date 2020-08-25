@@ -691,11 +691,11 @@ class WepController(object):
 
 		# Write info about donuts to a file
 		fname = 'donutStarsExtraIntra.txt'
-		if postageImgDir is None:
+		if postageImgDir == None:
 			postageImgDir = os.getcwd()
 			print('Since postageImgDir was not provided, we will save the donuts info to ')
 			print(postageImgDir)
-		outputFilePath = postageImgDir + fname
+		outputFilePath = os.path.join(postageImgDir,fname)
 		print('Saving donut info to %s'%outputFilePath)
 		fid = open(outputFilePath, "w")
 		fid.write(content)

@@ -613,8 +613,8 @@ class WEPCalculation(object):
         """
 
         sensorNameList = list(neighborStarMap)
-        
-        if len(obsIdList) == 2 : # ComCam case 
+
+        if len(obsIdList) == 2 : # ComCam case
             print('_calcWfErr has a pair of intra/extra focal obsIds')
             imgType = self._getImageType()
             if (imgType == ImageType.Amp):
@@ -624,8 +624,8 @@ class WEPCalculation(object):
                 wfsImgMap = self.wepCntlr.getEimgMapByPistonDefocal(
                   sensorNameList, obsIdList)
 
-        elif len(obsIdList) == 1 : #corner WFS case 
-            print('_calcWfErr has a single intra-focal obsId: the corner WFS case') 
+        elif len(obsIdList) == 1 : #corner WFS case
+            print('_calcWfErr has a single intra-focal obsId: the corner WFS case')
             wfsImgMap = self.wepCntlr.getPostIsrImgMapOnCornerWfs(
                   sensorNameList, obsIdList[0])
 

@@ -68,10 +68,15 @@ camDimOffset: 0
 
 # Do the deblending or not (we do not have the functionable deblending
 # algorithm yet)
-doDeblending: True
+doDeblending: False
+
+# Blend brightness difference. If this is not None then it will
+# only choose blends where the refCat says mag is at least blendMagDiff
+# different between two stars. Only works when bscDbType is refCat.
+blendMagDiff: 2
 
 # Deblending donut algorithm to use. ("adapt" or "convolveTemplate")
-deblendDonutAlgo: convolveTemplate
+deblendDonutAlgo: adapt
 
 # Which type of template to use with new centroid algorithms
 # 'phosim' or 'model'
@@ -90,10 +95,10 @@ minUnblendedDistance: 160
 
 # Limit the number of stars used when running with `isolatedDonutFromImage`
 # Can be None or an integer
-maxSensorStars: 5
+maxSensorStars: 3
 
 # Location of reference catalog for WCS generation
-refCatDir: /astro/users/ajc26/epycuser/LSST-Commissioning/aoc/gaia_refcat
+refCatDir: /astro/store/epyc/users/ajc26/LSST-Commissioning/aoc/gaia_refcat
 
 # Number of processor for the parallel calculation (should be >=1)
 # This is just a placeholder at this moment

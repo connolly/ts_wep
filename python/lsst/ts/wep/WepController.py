@@ -1,5 +1,6 @@
 import re
 import os
+import warnings
 import numpy as np
 
 from lsst.ts.wep.ButlerWrapper import ButlerWrapper
@@ -300,7 +301,7 @@ class WepController(object):
 		Note: we assume these to be of imageType == ImageType.Amp
 
 		Note: whether the image is intra- or extra- focal is determined
-		based on the sensor name. 
+		based on the sensor name.
 
 		Parameters
 		----------
@@ -316,24 +317,24 @@ class WepController(object):
 			dictionary item is the defocal image on the camera coordinate.
 			(type: DefocalImage).
 		"""
-		
+
 
 		# Get the wavefront image map
 		wfsImgMap = dict()
 		for sensorName in sensorNameList:
-		   
+
 			# Get the sensor name information
 			raft, sensor = self._getSensorInfo(sensorName)[0:2]
 
 			# Get the exposure image in ndarray
 			exp = self.butlerWrapper.getPostIsrCcd(
 					int(obsId), raft, sensor)
-			 
+
 			img = self.butlerWrapper.getImageData(exp)
 
 			# Transform the image in DM coordinate to camera coordinate.
 			camImg = self._transImgDmCoorToCamCoor(img)
-			
+
 			# store in the dictionary  as either intra or extr-focal:
 			# determine whether intra- or extra-focal based on name:
 			if sensorName.endswith("A"):
@@ -397,8 +398,8 @@ class WepController(object):
 			self.sourProc.config(sensorName=abbrevName)
 
 			# Get the defocal images: [intra, extra]
-			# Note: the corner sensors have only either intra or extra 
-			# image, i.e.  'A' have intra,  'B' have extra 
+			# Note: the corner sensors have only either intra or extra
+			# image, i.e.  'A' have intra,  'B' have extra
 			defocalImgList = [wfsImgMap[sensorName].getIntraImg(),
 							  wfsImgMap[sensorName].getExtraImg()]
 
@@ -469,14 +470,24 @@ class WepController(object):
 						# Get the single donut/ deblended image
 						if (len(magRatio) == 1) or (not doDeblending):
 							imgDeblend = singleSciNeiImg
-
+							imgDeblendDimX, imgDeblendDimY = np.shape(imgDeblend)
 							# If bscDbType is 'image' we have already found
 							# donut centers in image with convolution
 							# Shouldn't have to refind centers on image
+							# TODO: What should we do with refCat dbType?
 							db_type = self.sourSelc.settingFile.getSetting('bscDbType')
 							if ((len(magRatio) == 1) and
 									(db_type != 'image')):
 								realcx, realcy = searchDonutPos(imgDeblend)
+								if ((realcx < 0.) or (realcx > imgDeblendDimX) or
+								   	(realcy < 0.) or (realcy > imgDeblendDimY)):
+									warning_msg = str(
+										"Donut center outside bound of imgDeblend shape." +
+										" This may be an indicator blank postage stamps are" +
+										" being created."
+									)
+									warnings.warn(warning_msg)
+									continue
 							else:
 								realcx = allStarPosX[-1]
 								realcy = allStarPosY[-1]
@@ -540,7 +551,7 @@ class WepController(object):
 
 						# Only keep for WFS if stamp is square
 						stampXDim, stampYDim = np.shape(imgDeblend)
-						if stampXDim != stampYDim:
+						if (stampXDim != stampYDim):
 							continue
 
 						# Create the donut object and put into the list if it
@@ -621,7 +632,7 @@ class WepController(object):
 
 		print('\n Calculating the wavefront error based on the donut map')
 		# initialize the storage array
-		content = "# abbrevDetectorName\t focalPlane\t starId\t xpos\t ypos\n"
+		content = "# abbrevDetectorName\tfocalPlane\tstarId\txpos\typos\n"
 
 		for sensorName, donutList in donutMap.items():
 

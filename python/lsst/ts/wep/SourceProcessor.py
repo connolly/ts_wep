@@ -618,7 +618,7 @@ class SourceProcessor(object):
             # Get the star pixel position
             starX, starY = raDeclInPixel[star]
 
-            # Transform the coordiante from DM team to camera team
+            # Transform the coordinate from DM team to camera team
             starX, starY = self.dmXY2CamXY(starX, starY)
 
             allStarPosX.append(starX)

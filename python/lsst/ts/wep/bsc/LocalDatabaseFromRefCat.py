@@ -1,10 +1,12 @@
 import os
 import numpy as np
+import pandas as pd
 import lsst.daf.persistence as dafPersist
 import lsst.geom
 import lsst.afw.table as afwTable
 import lsst.afw.image as afwImage
 import lsst.meas.base as measBase
+import astropy.units as u
 from copy import deepcopy
 from lsst.meas.algorithms import LoadIndexedReferenceObjectsTask, MagnitudeLimit
 from lsst.meas.astrom import AstrometryTask
@@ -28,13 +30,16 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
         donutImgSize = settingFileInst.getSetting("donutImgSizeInPixel")
         overlapDistance = settingFileInst.getSetting("minUnblendedDistance")
         maxSensorStars = settingFileInst.getSetting("maxSensorStars")
+        doDeblending = settingFileInst.getSetting("doDeblending")
+        blendMagDiff = settingFileInst.getSetting("blendMagDiff")
         refCatDir = settingFileInst.getSetting("refCatDir")
         refButler = dafPersist.Butler(refCatDir)
         self.refObjLoader = LoadIndexedReferenceObjectsTask(butler=refButler)
         skyDf = self.identifyDonuts(butlerRootPath, visitList, filterType,
                                     defocalState, wavefrontSensors, camera,
                                     centroidTemplateType, donutImgSize,
-                                    overlapDistance, maxSensorStars)
+                                    overlapDistance, doDeblending,
+                                    blendMagDiff, maxSensorStars)
         self.writeSkyFile(skyDf, fileOut)
         self.insertDataByFile(fileOut, filterType, skiprows=1)
 
@@ -43,7 +48,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
     def identifyDonuts(self, butlerRootPath, visitList, filterType,
                        defocalState, wavefrontSensors, camera,
                        templateType, donutImgSize, overlapDistance,
-                       maxSensorStars=None):
+                       doDeblending, blendMagDiffLimit, maxSensorStars=None):
 
         butler = dafPersist.Butler(butlerRootPath)
         sensorList = butler.queryMetadata('postISRCCD', 'detectorName')
@@ -90,7 +95,29 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
                                                             overlapDistance,
                                                             'centroid_x',
                                                             'centroid_y')
-            ranked_ref_cat_df = ranked_ref_cat_df.query('blended == False').reset_index(drop=True)
+
+            # Convert nJy to mags
+            mag_list = (ranked_ref_cat_df['phot_g_mean_flux'].values * u.nJy).to(u.ABmag)
+            ranked_ref_cat_df['mag'] = np.array(mag_list)
+
+            if doDeblending is False:
+                ranked_ref_cat_df = ranked_ref_cat_df.query('blended == False').reset_index(drop=True)
+            else:
+                single_blends_df = ranked_ref_cat_df.query('num_blended_neighbors == 1')
+                new_df = pd.DataFrame(ranked_ref_cat_df.query('blended == False'))
+                keep_sys_index = []
+                for keep_sys_on in single_blends_df.index:
+                    blend_index = ranked_ref_cat_df.iloc[keep_sys_on]['blended_with'][0]
+                    mag_keep = ranked_ref_cat_df.iloc[keep_sys_on]['mag']
+                    mag_blend = ranked_ref_cat_df.iloc[blend_index]['mag']
+                    blend_mag_diff = mag_blend - mag_keep
+                    if np.abs(blend_mag_diff) > blendMagDiffLimit:
+                        keep_sys_index.append(keep_sys_on)
+                if len(keep_sys_index) > 0:
+                    new_df = pd.concat([new_df, ranked_ref_cat_df.iloc[keep_sys_index]])
+
+                ranked_ref_cat_df = new_df.reset_index(drop=True)
+
 
             ranked_ref_cat_df['ra'] = np.degrees(ranked_ref_cat_df['coord_ra'])
             ranked_ref_cat_df['dec'] = np.degrees(ranked_ref_cat_df['coord_dec'])
@@ -98,25 +125,16 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
             ranked_ref_cat_df['sensor'] = sensor
 
             # Get magnitudes
-            # Code cmmented out below will be useful when we can get a flux
+            # Code commented out below will be useful if we get a flux
             # off the image for the objects
             # photo_calib = raw.getPhotoCalib()
             # mag_list = []
             # for mean_flux in ranked_ref_cat_df['phot_g_mean_flux'].values:
             #     mag_list.append(photo_calib.instFluxToMagnitude(mean_flux))
 
-            # Convert microJy to mags
-            mag_list = 23.9 - 2.5*np.log10(1e-3*ranked_ref_cat_df['phot_g_mean_flux'].values)
-            ranked_ref_cat_df['mag'] = mag_list
-
-            bright_mag_limit = 11.
-            faint_mag_limit = 15.
-            ranked_ref_cat_df = \
-                ranked_ref_cat_df.query('mag > %f' % bright_mag_limit).reset_index(drop=True)
-            if maxSensorStars is None:
-                ranked_ref_cat_df = ranked_ref_cat_df.query('mag < %f' % faint_mag_limit).reset_index(drop=True)
-            else:
-                ranked_ref_cat_df = ranked_ref_cat_df.iloc[:maxSensorStars]
+            # bright_mag_limit = 11.1
+            # ranked_ref_cat_df = \
+            #     ranked_ref_cat_df.query('mag > %f' % bright_mag_limit).reset_index(drop=True)
 
             # Make coordinate change appropriate to sourProc.dmXY2CamXY
             # FIXME: This is a temporary workaround
@@ -185,7 +203,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
 
         magLimit = MagnitudeLimit()
         magLimit.minimum = 11
-        magLimit.maximum = 12
+        magLimit.maximum = 14
         astromConfig.referenceSelector.magLimit = magLimit
         astromConfig.referenceSelector.magLimit.fluxField = "phot_rp_mean_flux"
         astromConfig.matcher.minMatchedPairs = 4

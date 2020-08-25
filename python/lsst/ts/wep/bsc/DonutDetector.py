@@ -62,6 +62,12 @@ class DonutDetector():
         binary_exp.image.array[binary_exp.image.array <= image_thresh] = 0.
         binary_exp.image.array[binary_exp.image.array > image_thresh] = 1.
 
+        # If the donuts are sparse in an image the local threshold will find
+        # noise peaks. This should cut those out. And with dense fields
+        # the goal isn't to get every single one but to get the bright ones
+        exp_median = np.median(exposure.image.array.flatten())
+        binary_exp.image.array[np.where(exposure.image.array < exp_median)] = 0.
+
         binary_template = deepcopy(self.template)
         template_thresh = threshold_otsu(binary_template)
         binary_template[binary_template <= template_thresh] = 0.
@@ -104,7 +110,7 @@ class DonutDetector():
         # binary images all signals should be around the same strength
         ranked_correlate = np.argsort(new_exp.image.array.flatten())[::-1]
         cutoff = len(np.where(new_exp.image.array.flatten() >
-                              0.9*np.max(new_exp.image.array))[0])
+                              0.7*np.max(new_exp.image.array))[0])
         ranked_correlate = ranked_correlate[:cutoff]
         nx, ny = np.unravel_index(ranked_correlate,
                                   np.shape(new_exp.image.array))
@@ -158,6 +164,14 @@ class DonutDetector():
             image_donuts_df.loc[i, 'blended_with'].append(j)
             image_donuts_df.loc[j, 'blended_with'].append(i)
 
+        image_donuts_df['num_blended_neighbors'] = 0
+        for i in range(len(image_donuts_df)):
+            if image_donuts_df['blended_with'].iloc[i] is None:
+                continue
+
+            image_donuts_df.at[i, 'num_blended_neighbors'] = \
+                len(image_donuts_df['blended_with'].loc[i])
+
         return image_donuts_df
 
     def rankUnblendedByFlux(self, donuts_df, exposure):
@@ -198,74 +212,6 @@ class DonutDetector():
         unblended_df = unblended_df.sort_values('flux', ascending=False)
 
         return unblended_df
-
-    def measureBlendCount(self, donuts_df, exposure):
-
-        """
-        Measure the number of donuts in blended systems
-
-        Parameters
-        ----------
-        donuts_df: pandas dataframe
-            Output from `detectDonuts`
-
-        Returns
-        -------
-        blended_df: pandas dataframe
-            Dataframe of the blended objects with each donut assigned to
-            a blended system
-
-        blend_system_df: pandas dataframe
-            Dataframe with information on the blended systems that can
-            be joined on `blend_system` column with blended_df
-        """
-
-        blended_df = donuts_df.query('blended == True')
-        blended_df['blend_system'] = None
-
-        # Label blended systems
-        blended_system_list = []
-        num_systems = 0
-        for i, blended_list in list(enumerate(blended_df['blended_with'].values)):
-
-            new_sys = True
-
-            sys_on = blended_df.index[i]
-            if blended_df['blend_system'].iloc[i] is None:
-                for j in blended_list:
-                    if blended_df['blend_system'].loc[j] is not None:
-                        new_sys = False
-                        blended_sys_num = blended_df['blend_system'].loc[j]
-            else:
-                new_sys = False
-                blended_sys_num = blended_df.iloc[i]['blend_system']
-
-            if new_sys is True:
-                blended_system_list.append([sys_on])
-                blended_df['blend_system'].iloc[i] = num_systems
-                for j in blended_list:
-                    blended_system_list[-1].append(j)
-                    blended_df['blend_system'].loc[j] = num_systems
-                num_systems += 1
-            else:
-                blended_system = blended_system_list[blended_sys_num]
-                obj_blended = blended_df['blended_with'].iloc[i]
-                for j in obj_blended:
-                    if j not in blended_system:
-                        blended_system.append(j)
-                        blended_df['blend_system'].loc[j] = blended_sys_num
-
-        blended_flux = []
-        for x_coord, y_coord in zip(blended_df['x_center'].values,
-                                    blended_df['y_center'].values):
-            blended_flux.append(exposure.image.array[np.int(y_coord),
-                                                     np.int(x_coord)])
-
-        blend_system_df = pd.DataFrame(np.unique(blended_df['blend_system']),
-                                       columns=['system_number'])
-        blend_system_df['system_size'] = np.bincount(blended_df['blend_system'])
-
-        return blended_df, blend_system_df
 
     def correlateExposureWithImage(self, exposure, kernelImage):
         '''Convolve image and variance planes in an exposure with an image using FFT

@@ -264,10 +264,13 @@ class SourceSelector(object):
 
     def getTargetStarFromImage(self, butlerRootPath, visitList, defocalState,
                                offset=0):
+
         if (not type(self.db) == LocalDatabaseFromImage):
             errorString = "The database type is incorrect."
             errorString += " Received type: {} but expected type: {}".format(
-                type(self.db),LocalDatabaseFromImage)
+                type(self.db),
+                LocalDatabaseFromImage
+                )
             raise TypeError(errorString)
 
         filterType = self.getFilter()
@@ -289,10 +292,13 @@ class SourceSelector(object):
 
     def getTargetStarFromRefCat(self, butlerRootPath, visitList, defocalState,
                                 offset=0):
+
         if (not type(self.db) == LocalDatabaseFromRefCat):
             errorString = "The database type is incorrect."
             errorString += " Received type: {} but expected type: {}".format(
-                type(self.db),LocalDatabaseFromRefCat)
+                type(self.db),
+                LocalDatabaseFromRefCat
+                )
             raise TypeError(errorString)
 
         filterType = self.getFilter()

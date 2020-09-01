@@ -8,11 +8,12 @@ from lsst.ts.wep.bsc.LocalDatabaseFromImage import LocalDatabaseFromImage
 from lsst.ts.wep.bsc.LocalDatabaseFromRefCat import LocalDatabaseFromRefCat
 from lsst.ts.wep.Utility import mapFilterRefToG, getConfigDir
 from lsst.ts.wep.ParamReader import ParamReader
+from lsst.ts.wep.ctrlIntf.PhosimWcsSol import PhosimWcsSol
 
 
 class SourceSelector(object):
 
-    def __init__(self, camType, bscDbType, settingFileName="default.yaml"):
+    def __init__(self, camType, bscDbType, isrDir, settingFileName="default.yaml"):
         """Initialize the source selector class.
 
         Parameters
@@ -25,15 +26,23 @@ class SourceSelector(object):
             Setting file name (the default is "default.yaml".)
         """
 
+        settingFilePath = os.path.join(getConfigDir(), settingFileName)
+        self.settingFile = ParamReader(filePath=settingFilePath)
+
+        use_exp_wcs = self.settingFile.getSetting("expWcs")
         self.camera = CamFactory.createCam(camType)
+        if use_exp_wcs is True:
+            exp_wcs = PhosimWcsSol()
+            rerunDir = self.settingFile.getSetting("rerunName")
+            isrDir = os.path.join(isrDir, 'rerun', rerunDir)
+            exp_wcs.setIsrDir(isrDir)
+            self.camera._wcs = exp_wcs
+
         self.db = DatabaseFactory.createDb(bscDbType)
         self.filter = Filter()
 
         self.maxDistance = 0.0
         self.maxNeighboringStar = 0
-
-        settingFilePath = os.path.join(getConfigDir(), settingFileName)
-        self.settingFile = ParamReader(filePath=settingFilePath)
 
         # Configurate the criteria of neighboring stars
         starRadiusInPixel = self.settingFile.getSetting("starRadiusInPixel")
@@ -115,7 +124,7 @@ class SourceSelector(object):
         mjd = self.settingFile.getSetting("cameraMJD")
         self.camera.setObsMetaData(ra, dec, rotSkyPos, mjd=mjd)
 
-    def getTargetStar(self, offset=0, lowMagnitude=None, highMagnitude=None):
+    def getTargetStar(self, offset=0):
         """Get the target stars by querying the database.
 
         Parameters
@@ -137,13 +146,12 @@ class SourceSelector(object):
             of sensor as a list. The dictionary key is the sensor name.
         """
 
-        wavefrontSensors = self.camera.getWavefrontSensor()
-        if (lowMagnitude is None ) or (highMagnitude is None):
-            lowMagnitude, highMagnitude = self.filter.getMagBoundary()
-
         # Map the reference filter to the G filter
         filterType = self.getFilter()
         mappedFilterType = mapFilterRefToG(filterType)
+
+        wavefrontSensors = self.camera.getWavefrontSensor()
+        lowMagnitude, highMagnitude = self.filter.getMagBoundary()
 
         # Query the star database
         starMap = dict()
@@ -160,6 +168,7 @@ class SourceSelector(object):
 
             # Populate pixel information for stars
             populatedStar = self.camera.populatePixelFromRADecl(stars)
+
 
             # Get the stars that are on the detector
             starsOnDet = self.camera.getStarsOnDetector(populatedStar, offset)
@@ -212,7 +221,7 @@ class SourceSelector(object):
             starMap.pop(detector)
             wavefrontSensors.pop(detector)
 
-    def getTargetStarByFile(self, skyFilePath, offset=0):
+    def getTargetStarByFile(self, skyFilePath, visitList, offset=0):
         """Get the target stars by querying the star file.
 
         This function is only for the test. This shall be removed in the final.
@@ -252,6 +261,11 @@ class SourceSelector(object):
         filterType = self.getFilter()
         mappedFilterType = mapFilterRefToG(filterType)
 
+        if type(self.camera._wcs) == PhosimWcsSol:
+            self.camera._wcs.setWcsDataFromIsrDir(mappedFilterType,
+                                                  self.camera.getWfsCcdList(),
+                                                  visitList[0])
+
         # Write the sky data into the temporary table
         self.db.createTable(mappedFilterType)
         self.db.insertDataByFile(skyFilePath, mappedFilterType, skiprows=1)
@@ -275,13 +289,17 @@ class SourceSelector(object):
 
         filterType = self.getFilter()
         mappedFilterType = mapFilterRefToG(filterType)
-        wavefrontSensors = self.camera.getWavefrontSensor()
+
+        if type(self.camera._wcs) == PhosimWcsSol:
+            self.camera._wcs.setWcsDataFromIsrDir(mappedFilterType,
+                                                  self.camera.getWfsCcdList(),
+                                                  visitList[0])
 
         self.db.createTable(mappedFilterType)
 
         self.db.insertDataFromImage(butlerRootPath, self.settingFile,
                                     visitList, defocalState,
-                                    mappedFilterType, wavefrontSensors,
+                                    mappedFilterType,
                                     self.camera, skiprows=1)
         neighborStarMap, starMap, wavefrontSensors = self.getTargetStar(offset=offset)
 
@@ -303,13 +321,17 @@ class SourceSelector(object):
 
         filterType = self.getFilter()
         mappedFilterType = mapFilterRefToG(filterType)
-        wavefrontSensors = self.camera.getWavefrontSensor()
+
+        if type(self.camera._wcs) == PhosimWcsSol:
+            self.camera._wcs.setWcsDataFromIsrDir(mappedFilterType,
+                                                  self.camera.getWfsCcdList(),
+                                                  visitList[0])
 
         self.db.createTable(mappedFilterType)
 
         self.db.insertDataFromRefCat(butlerRootPath, self.settingFile,
                                      visitList, defocalState,
-                                     mappedFilterType, wavefrontSensors,
+                                     mappedFilterType,
                                      self.camera, skiprows=1)
         neighborStarMap, starMap, wavefrontSensors = self.getTargetStar(offset=offset)
 

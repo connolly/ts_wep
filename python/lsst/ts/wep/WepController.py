@@ -6,7 +6,7 @@ import numpy as np
 from lsst.ts.wep.ButlerWrapper import ButlerWrapper
 from lsst.ts.wep.DefocalImage import DefocalImage
 from lsst.ts.wep.DonutImage import DonutImage
-from lsst.ts.wep.Utility import abbrevDectectorName, searchDonutPos, \
+from lsst.ts.wep.Utility import abbrevDetectorName, searchDonutPos, \
 	DefocalType, ImageType, getModulePath
 
 
@@ -392,7 +392,7 @@ class WepController(object):
 
 			# Get the abbraviated sensor name
 			# that's eg., R22_S20 ...
-			abbrevName = abbrevDectectorName(sensorName)
+			abbrevName = abbrevDetectorName(sensorName)
 
 			# Configure the source processor
 			self.sourProc.config(sensorName=abbrevName)
@@ -675,18 +675,18 @@ class WepController(object):
 
 
 				print('\n sensorName ', sensorName,
-					  ' abbrevDetectorName ',abbrevDectectorName(sensorName),
+					  ' abbrevDetectorName ',abbrevDetectorName(sensorName),
 					  ' starId=',intraDonut.getStarId(),
 					  ' donut px pos = ', intraDonut.getPixelPos()
 					  )
 
-				content += "%s\t  %s\t %d\t %4.6f\t %4.6f\n"%(abbrevDectectorName(sensorName), 'intra',
+				content += "%s\t  %s\t %d\t %4.6f\t %4.6f\n"%(abbrevDetectorName(sensorName), 'intra',
 																	intraDonut.getStarId(),
 																	intraDonut.getPixelPos()[0],
 																	intraDonut.getPixelPos()[1]
 																   )
 
-				content += "%s\t  %s\t %d\t %4.6f\t %4.6f\n"%(abbrevDectectorName(sensorName), 'extra',
+				content += "%s\t  %s\t %d\t %4.6f\t %4.6f\n"%(abbrevDetectorName(sensorName), 'extra',
 																	extraDonut.getStarId(),
 																	extraDonut.getPixelPos()[0],
 																	extraDonut.getPixelPos()[1]

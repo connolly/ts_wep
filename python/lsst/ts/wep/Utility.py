@@ -209,7 +209,7 @@ def expandDetectorName(abbrevName):
     return fullName
 
 
-def abbrevDectectorName(canonicalForm):
+def abbrevDetectorName(canonicalForm):
     """Convert a canonical name to abbreviate name (R:x,y S:x,y[,c] -->
     Rxy_Sxy[_Ci]).
 

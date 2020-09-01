@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from lsst.ts.wep.Utility import DefocalType, getConfigDir, \
-    CamType, abbrevDectectorName
+    CamType, abbrevDetectorName
 from lsst.ts.wep.cwfs.Instrument import Instrument
 from lsst.ts.wep.cwfs.CompensableImage import CompensableImage
 

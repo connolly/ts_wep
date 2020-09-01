@@ -615,11 +615,15 @@ class SourceProcessor(object):
         allStarPosY = []
         for star in allStar:
 
-            # Get the star pixel position
-            starX, starY = raDeclInPixel[star]
+            if self.settingFile.getSetting("expWcs") is True:
+                # Get the star pixel position
+                starY, starX = raDeclInPixel[star]
+            else:
+                # Get the star pixel position
+                starX, starY = raDeclInPixel[star]
 
-            # Transform the coordinate from DM team to camera team
-            starX, starY = self.dmXY2CamXY(starX, starY)
+                # Transform the coordinate from DM team to camera team
+                starX, starY = self.dmXY2CamXY(starX, starY)
 
             allStarPosX.append(starX)
             allStarPosY.append(starY)

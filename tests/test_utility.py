@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from lsst.ts.wep.Utility import abbrevDectectorName, expandDetectorName, \
+from lsst.ts.wep.Utility import abbrevDetectorName, expandDetectorName, \
     mapFilterRefToG, FilterType, getModulePath, getConfigDir, \
     getObsLsstCmdTaskConfigDir, ImageType, getImageType, getBscDbType, \
     BscDbType, getCentroidFindType, CentroidFindType, getDeblendDonutType, \
@@ -18,15 +18,15 @@ class TestUtility(unittest.TestCase):
         string = filt.toString()
         self.assertEqual(string, 'y')
 
-    def testAbbrevDectectorName(self):
+    def testAbbrevDetectorName(self):
 
         sciSensorName = "R:2,2 S:1,1"
-        self.assertEqual(abbrevDectectorName(sciSensorName), "R22_S11")
+        self.assertEqual(abbrevDetectorName(sciSensorName), "R22_S11")
 
         wfsSensorName = "R:4,0 S:0,2,B"
-        self.assertEqual(abbrevDectectorName(wfsSensorName), "R40_S02_C1")
+        self.assertEqual(abbrevDetectorName(wfsSensorName), "R40_S02_C1")
 
-        self.assertRaises(ValueError, abbrevDectectorName, "R:4,0 S:0,2,C")
+        self.assertRaises(ValueError, abbrevDetectorName, "R:4,0 S:0,2,C")
 
     def testExpandDetectorName(self):
 

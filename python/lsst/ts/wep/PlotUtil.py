@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 from lsst.ts.wep.ButlerWrapper import ButlerWrapper
-from lsst.ts.wep.Utility import abbrevDectectorName
+from lsst.ts.wep.Utility import abbrevDetectorName
 from matplotlib.colors import LogNorm, SymLogNorm
 
 import matplotlib.pyplot as plt

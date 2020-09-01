@@ -2,7 +2,7 @@ import os
 import warnings
 
 from lsst.ts.wep.Utility import getModulePath, getConfigDir, BscDbType, \
-    FilterType, abbrevDectectorName, getBscDbType, getImageType, \
+    FilterType, abbrevDetectorName, getBscDbType, getImageType, \
     getCentroidFindType, ImageType, DefocalType
 from lsst.ts.wep.CamDataCollector import CamDataCollector
 from lsst.ts.wep.CamIsrWrapper import CamIsrWrapper
@@ -129,7 +129,7 @@ class WEPCalculation(object):
             Configured source selector.
         """
 
-        sourSelc = SourceSelector(camType, bscDbType,
+        sourSelc = SourceSelector(camType, bscDbType, self.isrDir,
                                   settingFileName=settingFileName)
         sourSelc.setFilter(FilterType.REF)
 
@@ -326,7 +326,7 @@ class WEPCalculation(object):
         return self.rotSkyPos
 
     def calculateWavefrontErrors(self, rawExpData, extraRawExpData=None,postageImg=False,
-                                postageImgDir=None,lowMagnitude=None, highMagnitude=None,
+                                postageImgDir=None,
                                 sensorNameToIdFileName='sensorNameToId.yaml'):
         """Calculate the wavefront errors.
 
@@ -540,12 +540,11 @@ class WEPCalculation(object):
 
         camDimOffset = self.settingFile.getSetting("camDimOffset")
         if (bscDbType == BscDbType.LocalDb):
-            neighborStarMap = sourSelc.getTargetStar(offset=camDimOffset,
-                lowMagnitude=lowMagnitude, highMagnitude=highMagnitude)[0]
+            neighborStarMap = sourSelc.getTargetStar(offset=camDimOffset)[0]
         elif (bscDbType == BscDbType.LocalDbForStarFile):
             skyFile = self._assignSkyFile()
             neighborStarMap = sourSelc.getTargetStarByFile(
-                skyFile, offset=camDimOffset)[0]
+                skyFile, visitList, offset=camDimOffset)[0]
         elif (bscDbType == BscDbType.LocalDbFromImage):
             neighborStarMap = sourSelc.getTargetStarFromImage(
                 self._getButlerRootPath(), visitList, defocalState,
@@ -662,7 +661,7 @@ class WEPCalculation(object):
             sensorWavefrontData = SensorWavefrontData()
 
             # Set the sensor Id
-            abbrevSensor = abbrevDectectorName(sensor)
+            abbrevSensor = abbrevDetectorName(sensor)
             sensorIdList = mapSensorNameAndId.mapSensorNameToId(abbrevSensor)
             sensorId = sensorIdList[0]
             sensorWavefrontData.setSensorId(sensorId)

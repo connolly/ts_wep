@@ -11,16 +11,17 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
 
     def insertDataFromImage(self, butlerRootPath, settingFileInst,
                             visitList, defocalState,
-                            filterType, wavefrontSensors, camera,
+                            filterType, camera,
                             skiprows=1, keepFile=True,
                             fileOut='foundDonuts.txt'):
 
+        self.expWcs = settingFileInst.getSetting("expWcs")
         centroidTemplateType = settingFileInst.getSetting("centroidTemplateType")
         donutImgSize = settingFileInst.getSetting("donutImgSizeInPixel")
         overlapDistance = settingFileInst.getSetting("minUnblendedDistance")
         maxSensorStars = settingFileInst.getSetting("maxSensorStars")
         skyDf = self.identifyDonuts(butlerRootPath, visitList, filterType,
-                                    defocalState, wavefrontSensors, camera,
+                                    defocalState, camera,
                                     centroidTemplateType, donutImgSize,
                                     overlapDistance, maxSensorStars)
         self.writeSkyFile(skyDf, fileOut)
@@ -29,7 +30,7 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
         return
 
     def identifyDonuts(self, butlerRootPath, visitList, filterType,
-                       defocalState, wavefrontSensors, camera,
+                       defocalState, camera,
                        templateType, donutImgSize, overlapDistance,
                        maxSensorStars=None):
 
@@ -37,7 +38,7 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
         sensorList = butler.queryMetadata('postISRCCD', 'detectorName')
         visitOn = visitList[0]
         full_unblended_df = None
-        for detector, wavefrontSensor in wavefrontSensors.items():
+        for detector in camera.getWfsCcdList():
 
             raftStr, sensorStr = detector.split(' ')
             raftDigits = raftStr.split(':')[1].split(',')
@@ -70,11 +71,16 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
             # Make coordinate change appropriate to sourProc.dmXY2CamXY
             # FIXME: This is a temporary workaround
             # Transpose because wepcntl. _transImgDmCoorToCamCoor
-            dimY, dimX = list(raw.getDimensions())
-            pixelCamX = ranked_unblended_df['x_center'].values
-            pixelCamY = dimX - ranked_unblended_df['y_center'].values
-            ranked_unblended_df['x_center'] = pixelCamX
-            ranked_unblended_df['y_center'] = pixelCamY
+            if self.expWcs is False:
+                # Transpose because wepcntl. _transImgDmCoorToCamCoor
+                dimY, dimX = list(raw.getDimensions())
+                pixelCamX = ranked_ref_cat_df['centroid_x'].values
+                pixelCamY = dimX - ranked_ref_cat_df['centroid_y'].values
+                ranked_ref_cat_df['x_center'] = pixelCamX
+                ranked_ref_cat_df['y_center'] = pixelCamY
+            else:
+                ranked_ref_cat_df['x_center'] = ranked_ref_cat_df['centroid_x']
+                ranked_ref_cat_df['y_center'] = ranked_ref_cat_df['centroid_y']
 
             ra, dec = camera._wcs.raDecFromPixelCoords(
                 ranked_unblended_df['x_center'].values,

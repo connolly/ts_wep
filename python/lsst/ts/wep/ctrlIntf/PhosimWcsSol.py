@@ -1,6 +1,6 @@
 import numpy as np
 from lsst.ts.wep.ctrlIntf.AstWcsSol import AstWcsSol
-from lsst.ts.wep.Utility import abbrevDetectorName
+from lsst.ts.wep.Utility import abbrevDetectorName, parseAbbrevDetectorName
 from lsst.daf.persistence import Butler
 from lsst import geom
 
@@ -17,8 +17,8 @@ class PhosimWcsSol(AstWcsSol):
         wcsData = {}
 
         for detector in ccdList:
-
-            raft, sensor = abbrevDetectorName(detector).split('_')
+            abbrevName = abbrevDetectorName(detector)
+            raft, sensor = parseAbbrevDetectorName(abbrevName)
 
             data_id = {'visit': visitNum, 'filter': filterType.toString(),
                        'raftName': raft, 'detectorName': sensor}

@@ -208,6 +208,38 @@ def expandDetectorName(abbrevName):
         fullName = fullName + "," + {"0": "A", "1": "B"}[subSensor]
     return fullName
 
+def parseAbbrevDetectorName(abbrevName):
+    """Convert abbreviated name to a list of sensor, detector:
+    R:x,y S:x,y[,c]--> ['R:x,y','S:x,y']
+
+    Parameters
+    ----------
+    abbrevName : str 
+        Detector abbreviated name 
+    
+    Returns
+    -------
+    list ['R:x,y','S:x,y']: list of ['raft','sensor']
+
+    Raises
+    ------
+    ValueError 
+        Input does not match an expected form for detector 
+        abbreviated name.
+    """
+    # Raise error if the input does not match the form for 
+    # detector abbreviated name 
+    m = m = re.match(r"R(\d)(\d)_S(\d)(\d)", abbrevName)
+    if (m is None):
+        raise ValueError("Cannot parse abbreviated name %r" % (abbrevName,))
+    
+    # select just two first elements if there are more than two
+    # eg. ['R00', 'S22', 'C0'] for corner sensors 
+    abbrevNameSplit = abbrevName.split('_')
+    if len(abbrevNameSplit)>2:
+        abbrevNameSplit = np.copy(abbrevNameSplit[:2])
+    return abbrevNameSplit
+
 
 def abbrevDetectorName(canonicalForm):
     """Convert a canonical name to abbreviate name (R:x,y S:x,y[,c] -->

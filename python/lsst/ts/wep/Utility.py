@@ -3,7 +3,7 @@ import subprocess
 import re
 from scipy.ndimage.measurements import center_of_mass
 from enum import IntEnum, auto
-
+import numpy as np 
 from lsst.utils import getPackageDir
 
 

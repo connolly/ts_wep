@@ -54,10 +54,12 @@ class DonutDetector():
         """
 
         binary_exp = deepcopy(exposure)
+        binary_exp.image.array[binary_exp.image.array < 0.] = 0.
+        # TODO: Finalize thresholding
         # image_thresh = threshold_otsu(exposure.image.array)
-        # image_thresh = threshold_triangle(exposure.image.array)
-        # TODO: Set local window size based upon donut size
-        image_thresh = threshold_local(exposure.image.array, 161.)
+        image_thresh = threshold_triangle(exposure.image.array)
+        # TODO: Set local window size based upon donut size.
+        # image_thresh = threshold_local(exposure.image.array, 161.)
         binary_exp.image.array[binary_exp.image.array <= image_thresh] = 0.
         binary_exp.image.array[binary_exp.image.array > image_thresh] = 1.
 
@@ -105,11 +107,11 @@ class DonutDetector():
             binary_exp, binary_template_image
         )
 
-        # Set detection floor at 90% of max signal. Since we are using
+        # Set detection floor at 50% of max signal. Since we are using
         # binary images all signals should be around the same strength
         ranked_correlate = np.argsort(new_exp.image.array.flatten())[::-1]
         cutoff = len(np.where(new_exp.image.array.flatten() >
-                              0.7*np.max(new_exp.image.array))[0])
+                              0.5*np.max(new_exp.image.array))[0])
         ranked_correlate = ranked_correlate[:cutoff]
         nx, ny = np.unravel_index(ranked_correlate,
                                   np.shape(new_exp.image.array))
@@ -244,7 +246,7 @@ class DonutDetector():
 
         array = fftconvolve(image.getArray(), kernelImage.getArray(), mode='same')
 
-        newImage = ImageF(array.shape[0], array.shape[1])
+        newImage = ImageF(array.shape[1], array.shape[0])
         newImage.array[:] = array
         return newImage
 

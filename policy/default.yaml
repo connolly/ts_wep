@@ -13,7 +13,7 @@ pixelToArcsec: 0.2
 # file: Use the sky file
 # image: Use the image to get donuts
 # refCat: Use the image to fit a DM RefCat
-bscDbType: refCat
+bscDbType: file
 
 # Default BSC database path relative to the root of module
 defaultBscPath: tests/testData/bsc.db3
@@ -99,6 +99,9 @@ maxSensorStars: 3
 
 # Location of reference catalog for WCS generation
 refCatDir: /astro/store/epyc/users/ajc26/LSST-Commissioning/aoc/gaia_refcat
+
+# Use WCS from exposure?
+expWcs: True
 
 # Number of processor for the parallel calculation (should be >=1)
 # This is just a placeholder at this moment

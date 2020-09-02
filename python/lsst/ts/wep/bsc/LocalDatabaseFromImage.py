@@ -20,8 +20,9 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
         donutImgSize = settingFileInst.getSetting("donutImgSizeInPixel")
         overlapDistance = settingFileInst.getSetting("minUnblendedDistance")
         maxSensorStars = settingFileInst.getSetting("maxSensorStars")
+        pix2arcsec = settingFileInst.getSetting("pixelToArcsec")
         skyDf = self.identifyDonuts(butlerRootPath, visitList, filterType,
-                                    defocalState, camera,
+                                    defocalState, camera, pix2arcsec,
                                     centroidTemplateType, donutImgSize,
                                     overlapDistance, maxSensorStars)
         self.writeSkyFile(skyDf, fileOut)
@@ -56,7 +57,7 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
             # TODO: Rename this to reflect this is postISR not raw image.
             raw = butler.get('postISRCCD', **data_id)
             template = createTemplateImage(defocalState,
-                                           detector, [[2000., 2000.]],
+                                           detector, pix2arcsec,
                                            templateType, donutImgSize)
             donut_detect = DonutDetector(template)
             donut_df = donut_detect.detectDonuts(raw, overlapDistance)

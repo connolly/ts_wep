@@ -35,10 +35,11 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
         doDeblending = settingFileInst.getSetting("doDeblending")
         blendMagDiff = settingFileInst.getSetting("blendMagDiff")
         refCatDir = settingFileInst.getSetting("refCatDir")
+        pix2arcsec = settingFileInst.getSetting("pixelToArcsec")
         refButler = dafPersist.Butler(refCatDir)
         self.refObjLoader = LoadIndexedReferenceObjectsTask(butler=refButler)
         skyDf = self.identifyDonuts(butlerRootPath, visitList, filterType,
-                                    defocalState, camera,
+                                    defocalState, camera, pix2arcsec,
                                     centroidTemplateType, donutImgSize,
                                     overlapDistance, doDeblending,
                                     blendMagDiff, maxSensorStars)
@@ -48,7 +49,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
         return
 
     def identifyDonuts(self, butlerRootPath, visitList, filterType,
-                       defocalState, camera,
+                       defocalState, camera, pix2arcsec,
                        templateType, donutImgSize, overlapDistance,
                        doDeblending, blendMagDiffLimit, maxSensorStars=None):
 
@@ -71,7 +72,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
             raw = butler.get('postISRCCD', **data_id)
 
             template = createTemplateImage(defocalState,
-                                           detector, [[2000., 2000.]],
+                                           detector, pix2arcsec,
                                            templateType, donutImgSize)
             donut_detect = DonutDetector(template)
             # min_overlap_distance = 10. # Use for detecting for ref_cat matching

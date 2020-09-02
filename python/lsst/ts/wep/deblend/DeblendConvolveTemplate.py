@@ -21,7 +21,7 @@ class DeblendConvolveTemplate(DeblendAdapt):
             CentroidFindType.ConvolveTemplate)
 
     def _getBinaryImages(self, imgToDeblend, iniGuessXY, defocalState=1,
-                         sensorName=None, iniFieldXY=[(0., 0.)],
+                         sensorName=None, pix2arcsec=0.2,
                          templateType='model', donutImgSize=160, **kwargs):
         """Deblend the donut image.
 
@@ -54,7 +54,7 @@ class DeblendConvolveTemplate(DeblendAdapt):
 
         # Get template and appropriate binary images
         templateImg = createTemplateImage(defocalState, sensorName,
-                                          iniFieldXY, templateType,
+                                          pix2arcsec, templateType,
                                           donutImgSize)
         templateImgBinary = self._getImgBinaryAdapt(templateImg)
         templateImgBinary = binary_closing(templateImgBinary)

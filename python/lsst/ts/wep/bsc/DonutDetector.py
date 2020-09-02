@@ -8,7 +8,6 @@ from lsst.afw.image import ImageF
 from skimage.filters import threshold_otsu, threshold_triangle, threshold_local
 from sklearn.cluster import DBSCAN
 from scipy.spatial.distance import cdist
-from lsst.afw.image import ImageF
 from numpy.fft import fft2, ifft2
 from scipy.signal import fftconvolve, correlate2d, correlate
 

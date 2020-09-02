@@ -72,7 +72,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
             raw = butler.get('postISRCCD', **data_id)
 
             template = createTemplateImage(defocalState,
-                                           detector, pix2arcsec,
+                                           abbrevName, pix2arcsec,
                                            templateType, donutImgSize)
             donut_detect = DonutDetector(template)
             # min_overlap_distance = 10. # Use for detecting for ref_cat matching

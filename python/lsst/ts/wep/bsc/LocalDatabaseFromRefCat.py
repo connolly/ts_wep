@@ -14,7 +14,7 @@ from lsst.afw.image.utils import defineFilter
 from lsst.ts.wep.bsc.DonutDetector import DonutDetector
 from lsst.ts.wep.bsc.LocalDatabaseFromImage import LocalDatabaseFromImage
 from lsst.ts.wep.cwfs.TemplateUtils import createTemplateImage
-from lsst.ts.wep.Utility import abbrevDetectorName
+from lsst.ts.wep.Utility import abbrevDetectorName, parseAbbrevDetectorName
 
 
 class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
@@ -58,8 +58,8 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
         visitOn = visitList[0]
         full_ref_cat_df = None
         for detector in camera.getWfsCcdList():
-
-            raft, sensor = abbrevDetectorName(detector).split('_')
+            abbrevName = abbrevDetectorName(detector)
+            raft, sensor = parseAbbrevDetectorName(abbrevName)
 
             if sensor not in sensorList:
                 continue

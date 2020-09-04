@@ -326,7 +326,7 @@ class WEPCalculation(object):
         return self.rotSkyPos
 
     def calculateWavefrontErrors(self, rawExpData, extraRawExpData=None,postageImg=False,
-                                postageImgDir=None,
+                                postageImgDir=None,lowMagnitude=None, highMagnitude=None,
                                 sensorNameToIdFileName='sensorNameToId.yaml'):
         """Calculate the wavefront errors.
 
@@ -391,8 +391,7 @@ class WEPCalculation(object):
         # Get the target stars map neighboring stars
         neighborStarMap = self._getTargetStar(intraObsIdList,
                                               DefocalType.Intra,
-                                              lowMagnitude=lowMagnitude,
-                                              highMagnitude=highMagnitude)
+                                              lowMagnitude, highMagnitude)
 
         # Calculate the wavefront error
         intraObsId = intraObsIdList[0]

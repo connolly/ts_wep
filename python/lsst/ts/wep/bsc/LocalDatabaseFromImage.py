@@ -31,7 +31,7 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
         return
 
     def identifyDonuts(self, butlerRootPath, visitList, filterType,
-                       defocalState, camera,
+                       defocalState, camera, pix2arcsec,
                        templateType, donutImgSize, overlapDistance,
                        maxSensorStars=None):
 

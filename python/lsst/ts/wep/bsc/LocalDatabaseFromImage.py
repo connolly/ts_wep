@@ -3,7 +3,7 @@ import lsst.daf.persistence as dafPersist
 from lsst.ts.wep.bsc.DonutDetector import DonutDetector
 from lsst.ts.wep.bsc.LocalDatabaseForStarFile import LocalDatabaseForStarFile
 from lsst.ts.wep.cwfs.TemplateUtils import createTemplateImage
-
+from lsst.ts.wep.Utility import abbrevDetectorName, parseAbbrevDetectorName
 
 class LocalDatabaseFromImage(LocalDatabaseForStarFile):
 

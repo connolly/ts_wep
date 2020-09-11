@@ -39,13 +39,12 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
         sensorList = butler.queryMetadata('postISRCCD', 'detectorName')
         visitOn = visitList[0]
         full_unblended_df = None
+        # detector has 'R:0,0 S:2,2,A' format 
         for detector in camera.getWfsCcdList():
 
-            raftStr, sensorStr = detector.split(' ')
-            raftDigits = raftStr.split(':')[1].split(',')
-            raft = 'R%s%s' % (raftDigits[0], raftDigits[1])
-            sensorDigits = sensorStr.split(':')[1].split(',')
-            sensor = 'S%s%s' % (sensorDigits[0], sensorDigits[1])
+            # abbrevName has R00_S22_C0 format
+            abbrevName = abbrevDetectorName(detector) 
+            raft, sensor = parseAbbrevDetectorName(abbrevName)
 
             if sensor not in sensorList:
                 continue
@@ -57,7 +56,7 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
             # TODO: Rename this to reflect this is postISR not raw image.
             raw = butler.get('postISRCCD', **data_id)
             template = createTemplateImage(defocalState,
-                                           detector, pix2arcsec,
+                                           abbrevName, pix2arcsec,
                                            templateType, donutImgSize)
             donut_detect = DonutDetector(template)
             donut_df = donut_detect.detectDonuts(raw, overlapDistance)

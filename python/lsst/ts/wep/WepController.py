@@ -451,17 +451,7 @@ class WepController(object):
 						# read the catalog starId :
 						starId = brightStarIdList[starIdIdx]
 
-						# get the postageImg fnameEnd :
-						postFname = '_sensor-'+abbrevName+\
-									'_star-'+str(starIdIdx)+\
-									'_id-'+str(starId)+\
-									'_posX-'+str(int(offsetX))+\
-									'_posY-'+str(int(offsetY)) + '.txt'
-
-						if postageImg:
-							fname = preFname+'_singleSciImg'+postFname
-							np.savetxt(postageImgDir+'/'+fname,singleSciNeiImg)
-							print('\nSaving postage stamp as %s'%fname)
+						db_type = self.sourSelc.settingFile.getSetting('bscDbType')
 
 						# Only consider the single donut if no deblending
 						if (not doDeblending) and (len(magRatio) != 1):
@@ -475,9 +465,8 @@ class WepController(object):
 							# donut centers in image with convolution
 							# Shouldn't have to refind centers on image
 							# TODO: What should we do with refCat dbType?
-							db_type = self.sourSelc.settingFile.getSetting('bscDbType')
 							if ((len(magRatio) == 1) and
-									(db_type != 'image')):
+									(db_type == 'file')):
 								realcx, realcy = searchDonutPos(imgDeblend)
 								if ((realcx < 0.) or (realcx > imgDeblendDimX) or
 								   	(realcy < 0.) or (realcy > imgDeblendDimY)):
@@ -503,6 +492,18 @@ class WepController(object):
 
 						else:
 							continue
+
+						# get the postageImg fnameEnd :
+						postFname = '_sensor-'+abbrevName+\
+									'_star-'+str(starIdIdx)+\
+									'_id-'+str(starId)+\
+									'_posX-'+str(int(realcx + offsetX))+\
+									'_posY-'+str(int(realcy + offsetY)) + '.txt'
+
+						if postageImg:
+							fname = preFname+'_singleSciImg'+postFname
+							np.savetxt(postageImgDir+'/'+fname,singleSciNeiImg)
+							print('\nSaving postage stamp as %s'%fname)
 
 						# Extract the image
 						if (len(magRatio) == 1):

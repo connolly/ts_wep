@@ -31,7 +31,7 @@ class DonutDetector():
 
         self.template = template
 
-    def thresholdExpFAndTemp(self, exposure):
+    def thresholdExpFAndTemp(self, exposure, image_threshold=None):
 
         """
         Create a binary image from the exposure using the triangle
@@ -43,6 +43,11 @@ class DonutDetector():
         exposure: LSST ExposureF instance
             Exposure with defocal donuts
 
+        image_threshold: Float or None
+            If None the threshold will be detected from the image. If
+            specified then the binary image will be created using the
+            specified threshold level.
+
         Returns
         -------
         binary_exp: LSST ExposureF instance
@@ -51,15 +56,21 @@ class DonutDetector():
 
         binary_template: numpy array
             A copy of the template with a binary image of the template
+
+        image_threshold: float
+            Pixel count threshold used to create binary image.
         """
 
         binary_exp = deepcopy(exposure)
         binary_exp.image.array[binary_exp.image.array < 0.] = 0.
-        # TODO: Finalize thresholding
-        # image_thresh = threshold_otsu(exposure.image.array)
-        image_thresh = threshold_triangle(exposure.image.array)
-        # TODO: Set local window size based upon donut size.
-        # image_thresh = threshold_local(exposure.image.array, 161.)
+        if image_threshold is None:
+            # TODO: Finalize thresholding
+            # image_thresh = threshold_otsu(exposure.image.array)
+            image_thresh = threshold_triangle(exposure.image.array)
+            # TODO: Set local window size based upon donut size.
+            # image_thresh = threshold_local(exposure.image.array, 161.)
+        else:
+            image_thresh = image_threshold
         binary_exp.image.array[binary_exp.image.array <= image_thresh] = 0.
         binary_exp.image.array[binary_exp.image.array > image_thresh] = 1.
 
@@ -74,9 +85,9 @@ class DonutDetector():
         binary_template[binary_template <= template_thresh] = 0.
         binary_template[binary_template > template_thresh] = 1.
 
-        return binary_exp, binary_template
+        return binary_exp, binary_template, image_thresh
 
-    def detectDonuts(self, exposure, blend_radius):
+    def detectDonuts(self, exposure, blend_radius, image_threshold=None):
 
         """
         Detect and categorize donut sources as blended/unblended
@@ -90,6 +101,11 @@ class DonutDetector():
             Minimum distance in pixels two donut centers need to
             be apart in order to be tagged as unblended
 
+        image_threshold: Float or None
+            Can specify the image threshold to use in the method
+            self.thresholdExpFAndTemp when creating the binary image
+            to use in the correlation step.
+
         Returns
         -------
         image_donuts_df: pandas dataframe
@@ -98,7 +114,8 @@ class DonutDetector():
             which donuts are blended with which.
         """
 
-        binary_exp, binary_template = self.thresholdExpFAndTemp(exposure)
+        binary_exp, binary_template, image_thresh = \
+            self.thresholdExpFAndTemp(exposure, image_threshold)
 
         binary_template_image = ImageF(np.shape(self.template)[0],
                                        np.shape(self.template)[1])
@@ -132,7 +149,7 @@ class DonutDetector():
         image_donuts_df = self.labelUnblended(image_donuts_df, blend_radius,
                                               'x_center', 'y_center')
 
-        return image_donuts_df
+        return image_donuts_df, image_thresh
 
     def labelUnblended(self, image_donuts_df, blend_radius,
                        x_col_name, y_col_name):

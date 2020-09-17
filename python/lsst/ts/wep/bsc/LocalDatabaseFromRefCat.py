@@ -76,9 +76,20 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
                                            templateType, donutImgSize)
             donut_detect = DonutDetector(template)
             # min_overlap_distance = 10. # Use for detecting for ref_cat matching
-            donut_df = donut_detect.detectDonuts(raw, overlapDistance)
+            # Astrometry WCS matching requires at least 7 sources
+            # Continue lowering threshold until we meet this requirement
+            # Use 10 just to make sure we have some leeway
+            donut_df_len = 0
+            image_thresh = None
+            while donut_df_len < 15:
+                donut_df, image_thresh = donut_detect.detectDonuts(
+                    raw, overlapDistance, image_thresh)
+                image_thresh = image_thresh*.75
+                donut_df_len = len(donut_df)
+            donut_df.to_csv('source_donut_df_%s.csv' % sensor)
             source_cat = self.makeSourceCat(donut_df)
             wcs_solver_result, new_wcs = self.solveWCS(raw, source_cat)
+            print(new_wcs)
 
             # Update WCS if using exposure WCS for source selection
             if self.expWcs is True:
@@ -87,10 +98,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
             ref_cat = wcs_solver_result.refCat
             ref_cat_df = ref_cat.asAstropy().to_pandas()
             x_lim, y_lim = list(raw.getDimensions())
-            ref_cat_df = ref_cat_df.query(str('centroid_x < %i and centroid_y < %i and ' %
-                                              (x_lim - donutImgSize, y_lim - donutImgSize) +
-                                              'centroid_x > %i and centroid_y > %i' %
-                                              (donutImgSize, donutImgSize)))
+            ref_cat_df.to_csv('image_donut_df_%s_0.csv' % sensor)
 
             ranked_ref_cat_df = ref_cat_df.sort_values(['phot_g_mean_flux'],
                                                        ascending=False)
@@ -104,24 +112,29 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
             mag_list = (ranked_ref_cat_df['phot_g_mean_flux'].values * u.nJy).to(u.ABmag)
             ranked_ref_cat_df['mag'] = np.array(mag_list)
 
-            if doDeblending is False:
+            ranked_ref_cat_df.to_csv('image_donut_df_%s.csv' % sensor)
+
+            if (doDeblending is False) and (blendMagDiffLimit is None):
                 ranked_ref_cat_df = ranked_ref_cat_df.query('blended == False').reset_index(drop=True)
-            else:
-                single_blends_df = ranked_ref_cat_df.query('num_blended_neighbors == 1')
+            elif doDeblending is False:
+                blends_df = ranked_ref_cat_df.query('num_blended_neighbors > 0')
                 new_df = pd.DataFrame(ranked_ref_cat_df.query('blended == False'))
                 keep_sys_index = []
-                for keep_sys_on in single_blends_df.index:
-                    blend_index = ranked_ref_cat_df.iloc[keep_sys_on]['blended_with'][0]
+                for keep_sys_on in blends_df.index:
+                    blend_index = ranked_ref_cat_df.iloc[keep_sys_on].blended_with
                     mag_keep = ranked_ref_cat_df.iloc[keep_sys_on]['mag']
-                    mag_blend = ranked_ref_cat_df.iloc[blend_index]['mag']
+                    mag_blend = ranked_ref_cat_df.iloc[blend_index]['mag'].values
                     blend_mag_diff = mag_blend - mag_keep
-                    if np.abs(blend_mag_diff) > blendMagDiffLimit:
+                    # Keep object if at least blendMagDiff greater than
+                    # all objects it is blended with
+                    if np.min(blend_mag_diff) >= blendMagDiffLimit:
                         keep_sys_index.append(keep_sys_on)
                 if len(keep_sys_index) > 0:
                     new_df = pd.concat([new_df, ranked_ref_cat_df.iloc[keep_sys_index]])
-
                 ranked_ref_cat_df = new_df.reset_index(drop=True)
-
+            else:
+                new_df = ranked_ref_cat_df.query('num_blended_neighbors <= 1')
+                ranked_ref_cat_df = new_df.reset_index(drop=True)
 
             ranked_ref_cat_df['ra'] = np.degrees(ranked_ref_cat_df['coord_ra'])
             ranked_ref_cat_df['dec'] = np.degrees(ranked_ref_cat_df['coord_dec'])
@@ -163,6 +176,13 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
             ranked_ref_cat_df['ra'] = ra
             ranked_ref_cat_df['dec'] = dec
             print(ranked_ref_cat_df['ra'])
+
+            ranked_ref_cat_df = ranked_ref_cat_df.query(
+                str('x_center < %i and y_center < %i and ' %
+                    (x_lim - donutImgSize, y_lim - donutImgSize) +
+                    'x_center > %i and y_center > %i' %
+                    (donutImgSize, donutImgSize))
+            )
 
             if full_ref_cat_df is None:
                 full_ref_cat_df = ranked_ref_cat_df.copy(deep=True)
@@ -210,8 +230,8 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
         astromConfig = AstrometryTask.ConfigClass()
 
         magLimit = MagnitudeLimit()
-        magLimit.minimum = 11
-        magLimit.maximum = 14
+        magLimit.minimum = 9
+        magLimit.maximum = 15
         astromConfig.referenceSelector.magLimit = magLimit
         astromConfig.referenceSelector.magLimit.fluxField = "phot_rp_mean_flux"
         astromConfig.matcher.minMatchedPairs = 4
@@ -221,8 +241,10 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
         astromConfig.wcsFitter.numRejIter = 0
         astromConfig.wcsFitter.maxScatterArcsec = 15
 
+        # Comment from AJC:
         # this is a bit sleazy (as RHL would say) but I'm just forcing the exposure
         # to have the same name as the one in the Gaia catalog for now
+        # TODO: Come back and look at this filter issue
         referenceFilterName = 'phot_rp_mean'
         defineFilter(referenceFilterName, 656.28)
         referenceFilter = afwImage.filter.Filter(referenceFilterName)

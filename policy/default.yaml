@@ -13,7 +13,7 @@ pixelToArcsec: 0.2
 # file: Use the sky file
 # image: Use the image to get donuts
 # refCat: Use the image to fit a DM RefCat
-bscDbType: file
+bscDbType: refCat
 
 # Default BSC database path relative to the root of module
 defaultBscPath: tests/testData/bsc.db3
@@ -25,7 +25,7 @@ defaultSkyFilePath: tests/testData/phosimOutput/realComCam/skyComCamInfo.txt
 # Camera MJD
 cameraMJD: 59580.0
 
-# Star (donut) radious in pixel
+# Star (donut) radius in pixel
 # Donut radius is 63 pixel if the defocal distance is 1.5 mm
 starRadiusInPixel: 63
 
@@ -70,10 +70,13 @@ camDimOffset: 0
 # algorithm yet)
 doDeblending: False
 
-# Blend brightness difference. If this is not None then it will
-# only choose blends where the refCat says mag is at least blendMagDiff
-# different between two stars. Only works when bscDbType is refCat.
-blendMagDiff: 2
+# Blend brightness difference. If this is null then when doDeblending
+# is False we will only choose isolated donuts that are at least
+# minUnblendedDistance from ANY other donuts. If this is not None then
+# when doDeblending is False we will still use the brighter donut in a blended set
+# of donuts as unBlended if it is at least blendMagDiff brighter than its
+# blended neighbors. NOTE: Only works when bscDbType is refCat.
+blendMagDiff: null
 
 # Deblending donut algorithm to use. ("adapt" or "convolveTemplate")
 deblendDonutAlgo: adapt
@@ -95,7 +98,7 @@ minUnblendedDistance: 160
 
 # Limit the number of stars used when running with `isolatedDonutFromImage`
 # Can be None or an integer
-maxSensorStars: 3
+maxSensorStars: None
 
 # Location of reference catalog for WCS generation
 refCatDir: /astro/store/epyc/users/ajc26/LSST-Commissioning/aoc/gaia_refcat

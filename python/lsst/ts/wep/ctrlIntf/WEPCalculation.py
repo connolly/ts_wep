@@ -326,8 +326,8 @@ class WEPCalculation(object):
         return self.rotSkyPos
 
     def calculateWavefrontErrors(self, rawExpData, extraRawExpData=None,postageImg=False,
-                                postageImgDir=None,lowMagnitude=None, highMagnitude=None,
-                                sensorNameToIdFileName='sensorNameToId.yaml'):
+                                postageImgDir=None,lowMagnitude=None, highMagnitude=None
+                                ):
         """Calculate the wavefront errors.
 
         Parameters
@@ -405,7 +405,7 @@ class WEPCalculation(object):
         donutMap = self._calcWfErr(neighborStarMap, obsIdList,
                                    postageImg, postageImgDir)
 
-        listOfWfErr = self._populateListOfSensorWavefrontData(donutMap,sensorNameToIdFileName)
+        listOfWfErr = self._populateListOfSensorWavefrontData(donutMap)
 
         return listOfWfErr
 
@@ -584,7 +584,7 @@ class WEPCalculation(object):
         return skyFile
 
     def _calcWfErr(self, neighborStarMap, obsIdList,postageImg=False,
-        postageImgDir=None, ):
+        postageImgDir=None, verbose=True ):
         """Calculate the wavefront error.
 
         Only consider one intra-focal and one extra-focal images at this
@@ -637,7 +637,7 @@ class WEPCalculation(object):
 
         return donutMap
 
-    def _populateListOfSensorWavefrontData(self, donutMap,sensorNameToIdFileName='sensorNameToId.yaml'):
+    def _populateListOfSensorWavefrontData(self, donutMap, sensorNameToIdFileName='sensorNameToId.yaml'):
         """Populate the list of sensor wavefront data.
 
         Parameters
@@ -652,7 +652,19 @@ class WEPCalculation(object):
         list[SensorWavefrontData]
             List of SensorWavefrontData object.
         """
-
+        # repackege the donutMap for corner WFS:
+        # it contains eg. 'R:4,4 S:0,0,A', 'R:4,4 S:0,0,B',
+        # which are identical. Here we pick the first one and 
+        # rename to agree with name R:4,4 S:0,0 in 
+        # sensorNameToIdFileName
+        detectors = list(donutMap.keys())
+        if detectors[0].endswith(('A','B')):
+        	donutMapAbbrev = {}
+	        for detector in detectors:
+	            #just clip the ',A' or ',B' part, and populate the new dict
+	            donutMapAbbrev[detector[:-2]] = donutMap[detector]
+	        donutMap = donutMapAbbrev.copy()
+        
         mapSensorNameAndId = MapSensorNameAndId(sensorNameToIdFileName)
         listOfWfErr = []
         for sensor, donutList in donutMap.items():

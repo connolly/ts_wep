@@ -326,8 +326,7 @@ class WEPCalculation(object):
         return self.rotSkyPos
 
     def calculateWavefrontErrors(self, rawExpData, extraRawExpData=None,postageImg=False,
-                                postageImgDir=None,lowMagnitude=None, highMagnitude=None
-                                ):
+                                postageImgDir=None):
         """Calculate the wavefront errors.
 
         Parameters
@@ -341,11 +340,6 @@ class WEPCalculation(object):
             is None.
         postageImg : True/False - whether to save postage stamp images of donuts
         postageImgDir : a directory where to save them
-        lowMagnitude, highMagnitude : magnitude limits for stars used to calculate
-            wavefront errors. If none, the limits are read from ts/wep/bsc/Filter.py
-            file. This can be used to explore the dependence of WFS calculation
-            on star magnitude in an input star catalog.
-
 
         Returns
         -------
@@ -390,8 +384,7 @@ class WEPCalculation(object):
 
         # Get the target stars map neighboring stars
         neighborStarMap = self._getTargetStar(intraObsIdList,
-                                              DefocalType.Intra,
-                                              lowMagnitude, highMagnitude)
+                                              DefocalType.Intra)
 
         # Calculate the wavefront error
         intraObsId = intraObsIdList[0]
@@ -508,7 +501,7 @@ class WEPCalculation(object):
         elif (imgType == ImageType.Eimg):
             return self.isrDir
 
-    def _getTargetStar(self, visitList, defocalState, lowMagnitude=None, highMagnitude=None):
+    def _getTargetStar(self, visitList, defocalState):
         """Get the target stars
 
         Returns

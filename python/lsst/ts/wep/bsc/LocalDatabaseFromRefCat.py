@@ -141,6 +141,9 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
             ranked_ref_cat_df['raft'] = raft
             ranked_ref_cat_df['sensor'] = sensor
 
+            if len(ranked_ref_cat_df) == 0:
+                raise ValueError('No sources meet criteria in detector {}'.format(detector))
+
             # Get magnitudes
             # Code commented out below will be useful if we get a flux
             # off the image for the objects
@@ -166,13 +169,15 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
                 ranked_ref_cat_df['x_center'] = ranked_ref_cat_df['centroid_x']
                 ranked_ref_cat_df['y_center'] = ranked_ref_cat_df['centroid_y']
 
+            print(ranked_ref_cat_df['ra'])
+
             ra, dec = camera._wcs.raDecFromPixelCoords(
                 ranked_ref_cat_df['x_center'].values,
                 ranked_ref_cat_df['y_center'].values,
                 # pixelCamX, pixelCamY,
                 detector, epoch=2000.0, includeDistortion=True
             )
-            print(ranked_ref_cat_df['ra'])
+
             ranked_ref_cat_df['ra'] = ra
             ranked_ref_cat_df['dec'] = dec
             print(ranked_ref_cat_df['ra'])

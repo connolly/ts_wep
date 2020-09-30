@@ -1,9 +1,9 @@
-import os
 import lsst.daf.persistence as dafPersist
 from lsst.ts.wep.bsc.DonutDetector import DonutDetector
 from lsst.ts.wep.bsc.LocalDatabaseForStarFile import LocalDatabaseForStarFile
 from lsst.ts.wep.cwfs.TemplateUtils import createTemplateImage
 from lsst.ts.wep.Utility import abbrevDetectorName, parseAbbrevDetectorName
+
 
 class LocalDatabaseFromImage(LocalDatabaseForStarFile):
 
@@ -39,11 +39,11 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
         sensorList = butler.queryMetadata('postISRCCD', 'detectorName')
         visitOn = visitList[0]
         full_unblended_df = None
-        # detector has 'R:0,0 S:2,2,A' format 
+        # detector has 'R:0,0 S:2,2,A' format
         for detector in camera.getWfsCcdList():
 
             # abbrevName has R00_S22_C0 format
-            abbrevName = abbrevDetectorName(detector) 
+            abbrevName = abbrevDetectorName(detector)
             raft, sensor = parseAbbrevDetectorName(abbrevName)
 
             if sensor not in sensorList:
@@ -59,11 +59,11 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
                                            abbrevName, pix2arcsec,
                                            templateType, donutImgSize)
             donut_detect = DonutDetector(template)
-            donut_df = donut_detect.detectDonuts(raw, overlapDistance)
-
+            donut_df, image_thresh = donut_detect.detectDonuts(raw, overlapDistance)
             ranked_unblended_df = donut_detect.rankUnblendedByFlux(donut_df,
                                                                    raw)
             ranked_unblended_df = ranked_unblended_df.reset_index(drop=True)
+            print(ranked_unblended_df)
 
             if maxSensorStars is not None:
                 ranked_unblended_df = ranked_unblended_df.iloc[:maxSensorStars]
@@ -74,13 +74,10 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
             if self.expWcs is False:
                 # Transpose because wepcntl. _transImgDmCoorToCamCoor
                 dimY, dimX = list(raw.getDimensions())
-                pixelCamX = ranked_ref_cat_df['centroid_x'].values
-                pixelCamY = dimX - ranked_ref_cat_df['centroid_y'].values
-                ranked_ref_cat_df['x_center'] = pixelCamX
-                ranked_ref_cat_df['y_center'] = pixelCamY
-            else:
-                ranked_ref_cat_df['x_center'] = ranked_ref_cat_df['centroid_x']
-                ranked_ref_cat_df['y_center'] = ranked_ref_cat_df['centroid_y']
+                pixelCamX = ranked_unblended_df['x_center'].values
+                pixelCamY = dimX - ranked_unblended_df['y_center'].values
+                ranked_unblended_df['x_center'] = pixelCamX
+                ranked_unblended_df['y_center'] = pixelCamY
 
             ra, dec = camera._wcs.raDecFromPixelCoords(
                 ranked_unblended_df['x_center'].values,

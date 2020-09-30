@@ -2,31 +2,25 @@ import numpy as np
 import pandas as pd
 
 from copy import deepcopy
-from lsst.ts.wep.SourceProcessor import SourceProcessor
 
 from lsst.afw.image import ImageF
 from skimage.filters import threshold_otsu, threshold_triangle, threshold_local
 from sklearn.cluster import DBSCAN
 from scipy.spatial.distance import cdist
-from numpy.fft import fft2, ifft2
-from scipy.signal import fftconvolve, correlate2d, correlate
+from scipy.signal import correlate
 
 
 class DonutDetector():
+
+    """Class to detect donuts directly from an out of focus image."""
 
     def __init__(self, template):
 
         """
         Parameters
         ----------
-        raft: str
-            Raft of the exposure
-
-        detector: str
-            Detector of the exposure
-
-        defocal_type: str
-            Defocal mode of the exposure: 'intra' or 'extra'
+        template: numpy array
+            Donut template appropriate for the image
         """
 
         self.template = template
@@ -232,51 +226,27 @@ class DonutDetector():
         return unblended_df
 
     def correlateExposureWithImage(self, exposure, kernelImage):
-        '''Convolve image and variance planes in an exposure with an image using FFT
-            Does not convolve mask. Returns new exposure'''
+        '''Convolve image and variance planes
+           in an exposure with an image using FFT
+           Does not convolve mask. Returns new exposure'''
 
         newExposure = exposure.clone()
 
-        image = self.correlateImageWithImage(newExposure.getImage(), kernelImage)
-        variance = self.correlateImageWithImage(newExposure.getVariance(), kernelImage)
+        image = self.correlateImageWithImage(newExposure.getImage(),
+                                             kernelImage)
+        variance = self.correlateImageWithImage(newExposure.getVariance(),
+                                                kernelImage)
 
         newExposure.image = image
         newExposure.variance = variance
         return newExposure
 
-    def convolveExposureWithImage(self, exposure, kernelImage):
-        '''Convolve image and variance planes in an exposure with an image using FFT
-            Does not convolve mask. Returns new exposure'''
-
-        newExposure = exposure.clone()
-
-        image = self.convolveImageWithImage(newExposure.getImage(), kernelImage)
-        variance = self.convolveImageWithImage(newExposure.getVariance(), kernelImage)
-
-        newExposure.image = image
-        newExposure.variance = variance
-        return newExposure
-
-    def convolveImageWithImage(self, image, kernelImage):
-        '''Convolvean image with a kernel
-            Returns an image'''
-
-        array = fftconvolve(image.getArray(), kernelImage.getArray(), mode='same')
-
-        newImage = ImageF(array.shape[1], array.shape[0])
-        newImage.array[:] = array
-        return newImage
-
-    def correlateImageWithImage(self, image, kernelImage, fft=False):
+    def correlateImageWithImage(self, image, kernelImage):
         '''Correlate an image with a kernel
-            Option to use an FFT or direct (slow)
-            Returns an image'''
+           Returns an image'''
 
-        if fft:
-            array = np.roll(ifft2(fft2(kernelImage.getArray()).conj()*fft2(image.getArray())).real,
-                            (image.getArray().shape[0] - 1)//2, axis=(0,1))
-        else:
-            array = correlate(image.getArray(), kernelImage.getArray(), mode='same', method='fft')
+        array = correlate(image.getArray(), kernelImage.getArray(),
+                          mode='same', method='fft')
 
         newImage = ImageF(array.shape[1], array.shape[0])
         newImage.array[:] = array

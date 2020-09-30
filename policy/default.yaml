@@ -76,7 +76,7 @@ doDeblending: False
 # when doDeblending is False we will still use the brighter donut in a blended set
 # of donuts as unBlended if it is at least blendMagDiff brighter than its
 # blended neighbors. NOTE: Only works when bscDbType is refCat.
-blendMagDiff: null
+blendMagDiff: 2
 
 # Deblending donut algorithm to use. ("adapt" or "convolveTemplate")
 deblendDonutAlgo: adapt
@@ -97,8 +97,8 @@ deblendTemplateType: isolatedDonutFromImage
 minUnblendedDistance: 160
 
 # Limit the number of stars used when running with `isolatedDonutFromImage`
-# Can be None or an integer
-maxSensorStars: None
+# Can be null or an integer
+maxSensorStars: null
 
 # Location of reference catalog for WCS generation
 refCatDir: /astro/store/epyc/users/ajc26/LSST-Commissioning/aoc/gaia_refcat

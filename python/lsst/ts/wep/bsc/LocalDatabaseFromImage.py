@@ -20,6 +20,8 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
         donutImgSize = settingFileInst.getSetting("donutImgSizeInPixel")
         overlapDistance = settingFileInst.getSetting("minUnblendedDistance")
         maxSensorStars = settingFileInst.getSetting("maxSensorStars")
+        if maxSensorStars == 'None':
+            maxSensorStars = None
         pix2arcsec = settingFileInst.getSetting("pixelToArcsec")
         skyDf = self.identifyDonuts(butlerRootPath, visitList, filterType,
                                     defocalState, camera, pix2arcsec,
@@ -60,10 +62,10 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
                                            templateType, donutImgSize)
             donut_detect = DonutDetector(template)
             donut_df, image_thresh = donut_detect.detectDonuts(raw, overlapDistance)
+
             ranked_unblended_df = donut_detect.rankUnblendedByFlux(donut_df,
                                                                    raw)
             ranked_unblended_df = ranked_unblended_df.reset_index(drop=True)
-            print(ranked_unblended_df)
 
             if maxSensorStars is not None:
                 ranked_unblended_df = ranked_unblended_df.iloc[:maxSensorStars]

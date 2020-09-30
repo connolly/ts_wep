@@ -349,7 +349,8 @@ class WepController(object):
 
 
 	def getDonutMap(self, neighborStarMap, wfsImgMap, filterType,
-					doDeblending=False, postageImg=False, postageImgDir=None):
+					doDeblending=False, postageImg=False, postageImgDir=None,
+					verbose=True):
 
 		"""Get the donut map on each wavefront sensor (WFS).
 
@@ -469,7 +470,7 @@ class WepController(object):
 									(db_type == 'file')):
 								realcx, realcy = searchDonutPos(imgDeblend)
 								if ((realcx < 0.) or (realcx > imgDeblendDimX) or
-								   	(realcy < 0.) or (realcy > imgDeblendDimY)):
+									(realcy < 0.) or (realcy > imgDeblendDimY)):
 									warning_msg = str(
 										"Donut center outside bound of imgDeblend shape." +
 										" This may be an indicator blank postage stamps are" +
@@ -503,7 +504,8 @@ class WepController(object):
 						if postageImg:
 							fname = preFname+'_singleSciImg'+postFname
 							np.savetxt(postageImgDir+'/'+fname,singleSciNeiImg)
-							print('\nSaving postage stamp as %s'%fname)
+							if verbose:
+								print('\nSaving postage stamp as %s'%fname)
 
 						# Extract the image
 						if (len(magRatio) == 1):
@@ -514,7 +516,8 @@ class WepController(object):
 							if postageImg:  # print image before resizing
 								fname = preFname+'_imgDeblend_full'+postFname
 								np.savetxt(postageImgDir+'/'+fname,imgDeblend)
-								print('Saving postage stamp image as %s'%fname)
+								if verbose:
+									print('Saving postage stamp image as %s'%fname)
 
 							imgDeblend = imgDeblend[y0:y0 + sizeInPix,
 													x0:x0 + sizeInPix]
@@ -522,7 +525,8 @@ class WepController(object):
 							if postageImg:  # print image after resizing
 								fname = preFname+'_imgDeblend_resized'+postFname
 								np.savetxt(postageImgDir+'/'+fname,imgDeblend)
-								print('Saving postage stamp image as %s'%fname)
+								if verbose: 
+									print('Saving postage stamp image as %s'%fname)
 
 						# Rotate the image if the sensor is the corner
 						# wavefront sensor
@@ -615,7 +619,7 @@ class WepController(object):
 
 		return index
 
-	def calcWfErr(self, donutMap,postageImgDir=None):
+	def calcWfErr(self, donutMap,postageImgDir=None,verbose=True):
 		"""Calculate the wavefront error in annular Zernike polynomials
 		(z4-z22).
 
@@ -630,7 +634,7 @@ class WepController(object):
 		dict
 			Donut image map with calculated wavefront error.
 		"""
-
+		
 		print('\n Calculating the wavefront error based on the donut map')
 		# initialize the storage array
 		content = "# abbrevDetectorName\tfocalPlane\tstarId\txpos\typos\n"
@@ -674,12 +678,12 @@ class WepController(object):
 				intraImg = intraDonut.getIntraImg()
 				extraImg = extraDonut.getExtraImg()
 
-
-				print('\n sensorName ', sensorName,
-					  ' abbrevDetectorName ',abbrevDetectorName(sensorName),
-					  ' starId=',intraDonut.getStarId(),
-					  ' donut px pos = ', intraDonut.getPixelPos()
-					  )
+				if verbose:
+					print('\n sensorName ', sensorName,
+						  ' abbrevDetectorName ',abbrevDetectorName(sensorName),
+						  ' starId=',intraDonut.getStarId(),
+						  ' donut px pos = ', intraDonut.getPixelPos()
+						  )
 
 				content += "%s\t  %s\t %d\t %4.6f\t %4.6f\n"%(abbrevDetectorName(sensorName), 'intra',
 																	intraDonut.getStarId(),

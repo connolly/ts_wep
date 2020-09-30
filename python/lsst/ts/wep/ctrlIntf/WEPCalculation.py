@@ -326,8 +326,7 @@ class WEPCalculation(object):
         return self.rotSkyPos
 
     def calculateWavefrontErrors(self, rawExpData, extraRawExpData=None,postageImg=False,
-                                postageImgDir=None,lowMagnitude=None, highMagnitude=None,
-                                sensorNameToIdFileName='sensorNameToId.yaml'):
+                                postageImgDir=None):
         """Calculate the wavefront errors.
 
         Parameters
@@ -341,11 +340,6 @@ class WEPCalculation(object):
             is None.
         postageImg : True/False - whether to save postage stamp images of donuts
         postageImgDir : a directory where to save them
-        lowMagnitude, highMagnitude : magnitude limits for stars used to calculate
-            wavefront errors. If none, the limits are read from ts/wep/bsc/Filter.py
-            file. This can be used to explore the dependence of WFS calculation
-            on star magnitude in an input star catalog.
-
 
         Returns
         -------
@@ -390,8 +384,7 @@ class WEPCalculation(object):
 
         # Get the target stars map neighboring stars
         neighborStarMap = self._getTargetStar(intraObsIdList,
-                                              DefocalType.Intra,
-                                              lowMagnitude, highMagnitude)
+                                              DefocalType.Intra)
 
         # Calculate the wavefront error
         intraObsId = intraObsIdList[0]
@@ -405,7 +398,7 @@ class WEPCalculation(object):
         donutMap = self._calcWfErr(neighborStarMap, obsIdList,
                                    postageImg, postageImgDir)
 
-        listOfWfErr = self._populateListOfSensorWavefrontData(donutMap,sensorNameToIdFileName)
+        listOfWfErr = self._populateListOfSensorWavefrontData(donutMap)
 
         return listOfWfErr
 
@@ -508,7 +501,7 @@ class WEPCalculation(object):
         elif (imgType == ImageType.Eimg):
             return self.isrDir
 
-    def _getTargetStar(self, visitList, defocalState, lowMagnitude=None, highMagnitude=None):
+    def _getTargetStar(self, visitList, defocalState):
         """Get the target stars
 
         Returns
@@ -584,7 +577,7 @@ class WEPCalculation(object):
         return skyFile
 
     def _calcWfErr(self, neighborStarMap, obsIdList,postageImg=False,
-        postageImgDir=None, ):
+        postageImgDir=None, verbose=True ):
         """Calculate the wavefront error.
 
         Only consider one intra-focal and one extra-focal images at this
@@ -637,7 +630,7 @@ class WEPCalculation(object):
 
         return donutMap
 
-    def _populateListOfSensorWavefrontData(self, donutMap,sensorNameToIdFileName='sensorNameToId.yaml'):
+    def _populateListOfSensorWavefrontData(self, donutMap, sensorNameToIdFileName='sensorNameToId.yaml'):
         """Populate the list of sensor wavefront data.
 
         Parameters
@@ -652,7 +645,19 @@ class WEPCalculation(object):
         list[SensorWavefrontData]
             List of SensorWavefrontData object.
         """
-
+        # repackege the donutMap for corner WFS:
+        # it contains eg. 'R:4,4 S:0,0,A', 'R:4,4 S:0,0,B',
+        # which are identical. Here we pick the first one and 
+        # rename to agree with name R:4,4 S:0,0 in 
+        # sensorNameToIdFileName
+        detectors = list(donutMap.keys())
+        if detectors[0].endswith(('A','B')):
+        	donutMapAbbrev = {}
+	        for detector in detectors:
+	            #just clip the ',A' or ',B' part, and populate the new dict
+	            donutMapAbbrev[detector[:-2]] = donutMap[detector]
+	        donutMap = donutMapAbbrev.copy()
+        
         mapSensorNameAndId = MapSensorNameAndId(sensorNameToIdFileName)
         listOfWfErr = []
         for sensor, donutList in donutMap.items():

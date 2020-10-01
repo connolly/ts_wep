@@ -35,9 +35,20 @@ class TestDonutDetector(unittest.TestCase):
         imageArr[720:880, 720:880] = self.extraTemplate*200.
         imageArr[100:260, 100:260] = self.extraTemplate*100.
         imageArr[160:320, 100:260] = self.extraTemplate*100.
+        imageArr[50, 50] = 0.
+        imageArr[950, 950] = 0.
         self.image.array[:] = imageArr
         self.extraExp = afwImage.ExposureF(1000, 1000)
         self.extraExp.image = self.image
+
+        # Create exposure to test filtering out of hot pixels
+        # that can throw thresholding off
+        imageArr[50, 50] = 50000.
+        imageArr[950, 950] = 25000.
+        self.hotPixImage = afwImage.ImageF(1000, 1000)
+        self.hotPixImage.array[:] = imageArr
+        self.hotPixExp = afwImage.ExposureF(1000, 1000)
+        self.hotPixExp.image = self.hotPixImage
 
     def _makeDir(self, directory):
 
@@ -72,6 +83,14 @@ class TestDonutDetector(unittest.TestCase):
         self.assertEqual(thresh, thresh2)
         np.testing.assert_array_equal(bExp.image.array, bExp2.image.array)
         np.testing.assert_array_equal(bTemplate, bTemplate2)
+
+        # Test with hot pixels in image. Results should be same as first.
+        bExp3, bTemplate3, thresh3 = self.extraDetector.thresholdExpFAndTemp(
+            self.hotPixExp
+        )
+        self.assertEqual(thresh, thresh3)
+        np.testing.assert_array_equal(bExp.image.array, bExp3.image.array)
+        np.testing.assert_array_equal(bTemplate, bTemplate3)
 
     def testDetectDonuts(self):
 

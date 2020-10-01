@@ -57,22 +57,29 @@ class DonutDetector():
 
         binary_exp = deepcopy(exposure)
         binary_exp.image.array[binary_exp.image.array < 0.] = 0.
+
         if image_threshold is None:
+            # Compensate for hot pixels that throw off thresholding
+            exp_bin_vals, exp_bins = np.histogram(binary_exp.image.array)
+            if np.sum(exp_bin_vals[-6:]) < 50.:
+                binary_exp.image.array[binary_exp.image.array >
+                                       exp_bins[-7]] = 0.
             # TODO: Finalize thresholding
             # image_thresh = threshold_otsu(exposure.image.array)
-            image_thresh = threshold_triangle(exposure.image.array)
+            image_thresh = threshold_triangle(binary_exp.image.array)
             # TODO: Set local window size based upon donut size.
             # image_thresh = threshold_local(exposure.image.array, 161.)
         else:
             image_thresh = image_threshold
+        binary_exp_median = np.median(binary_exp.image.array.flatten())
         binary_exp.image.array[binary_exp.image.array <= image_thresh] = 0.
         binary_exp.image.array[binary_exp.image.array > image_thresh] = 1.
 
         # If the donuts are sparse in an image the local threshold will find
         # noise peaks. This should cut those out. And with dense fields
         # the goal isn't to get every single one but to get the bright ones
-        exp_median = np.median(exposure.image.array.flatten())
-        binary_exp.image.array[np.where(exposure.image.array < exp_median)] = 0.
+        binary_exp.image.array[np.where(
+            exposure.image.array < binary_exp_median)] = 0.
 
         binary_template = deepcopy(self.template)
         template_thresh = threshold_otsu(binary_template)
@@ -226,9 +233,25 @@ class DonutDetector():
         return unblended_df
 
     def correlateExposureWithImage(self, exposure, kernelImage):
-        '''Convolve image and variance planes
-           in an exposure with an image using FFT
-           Does not convolve mask. Returns new exposure'''
+
+        '''
+        Convolve image and variance planes
+        in an exposure with an image using FFT
+        Does not convolve mask. Returns new exposure
+
+        Parameters
+        ----------
+        exposure: LSST ExposureF
+            Original exposure
+
+        kernelImage: LSST ImageF
+            Image containing array of Correlation Kernel
+
+        Returns
+        -------
+        newExposure: LSST ExposureF
+            Correlated Exposure
+        '''
 
         newExposure = exposure.clone()
 
@@ -242,8 +265,24 @@ class DonutDetector():
         return newExposure
 
     def correlateImageWithImage(self, image, kernelImage):
-        '''Correlate an image with a kernel
-           Returns an image'''
+
+        '''
+        Correlate an image with a kernel
+        Returns an image
+
+        Parameters
+        ----------
+        image: LSST ImageF
+            Original image
+
+        kernelImage: LSST ImageF
+            Image containing array of Correlation Kernel
+
+        Returns
+        -------
+        newImage: LSST ImageF
+            Correlated Image
+        '''
 
         array = correlate(image.getArray(), kernelImage.getArray(),
                           mode='same', method='fft')

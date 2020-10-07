@@ -38,7 +38,7 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
                        maxSensorStars=None):
 
         butler = dafPersist.Butler(butlerRootPath)
-              
+
         visitOn = visitList[0]
         full_unblended_df = None
         # detector has 'R:0,0 S:2,2,A' format
@@ -56,16 +56,15 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
 
             print(data_id)
             
-            # TODO: Rename this to reflect this is postISR not raw image.
-            raw = butler.get('postISRCCD', **data_id)
+            postISR = butler.get('postISRCCD', **data_id)
             template = createTemplateImage(defocalState,
                                            abbrevName, pix2arcsec,
                                            templateType, donutImgSize)
             donut_detect = DonutDetector(template)
-            donut_df, image_thresh = donut_detect.detectDonuts(raw, overlapDistance)
+            donut_df, image_thresh = donut_detect.detectDonuts(postISR, overlapDistance)
 
             ranked_unblended_df = donut_detect.rankUnblendedByFlux(donut_df,
-                                                                   raw)
+                                                                   postISR)
             ranked_unblended_df = ranked_unblended_df.reset_index(drop=True)
 
             if maxSensorStars is not None:
@@ -76,7 +75,7 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
             # Transpose because wepcntl. _transImgDmCoorToCamCoor
             if self.expWcs is False:
                 # Transpose because wepcntl. _transImgDmCoorToCamCoor
-                dimY, dimX = list(raw.getDimensions())
+                dimY, dimX = list(postISR.getDimensions())
                 pixelCamX = ranked_unblended_df['x_center'].values
                 pixelCamY = dimX - ranked_unblended_df['y_center'].values
                 ranked_unblended_df['x_center'] = pixelCamX

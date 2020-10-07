@@ -12,21 +12,20 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
     def insertDataFromImage(self, butlerRootPath, settingFileInst,
                             visitList, defocalState,
                             filterType, camera,
-                            skiprows=1, keepFile=True,
-                            fileOut='foundDonuts.txt'):
+                            skiprows=1, fileOut='foundDonuts.txt'):
 
-        self.expWcs = settingFileInst.getSetting("expWcs")
+        expWcs = settingFileInst.getSetting("expWcs")
         centroidTemplateType = settingFileInst.getSetting("centroidTemplateType")
         donutImgSize = settingFileInst.getSetting("donutImgSizeInPixel")
         overlapDistance = settingFileInst.getSetting("minUnblendedDistance")
+        doDeblending = settingFileInst.getSetting("doDeblending")
         maxSensorStars = settingFileInst.getSetting("maxSensorStars")
-        if maxSensorStars == 'None':
-            maxSensorStars = None
         pix2arcsec = settingFileInst.getSetting("pixelToArcsec")
         skyDf = self.identifyDonuts(butlerRootPath, visitList, filterType,
                                     defocalState, camera, pix2arcsec,
                                     centroidTemplateType, donutImgSize,
-                                    overlapDistance, maxSensorStars)
+                                    overlapDistance, doDeblending,
+                                    expWcs, maxSensorStars)
         self.writeSkyFile(skyDf, fileOut)
         self.insertDataByFile(fileOut, filterType, skiprows=1)
 
@@ -35,12 +34,12 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
     def identifyDonuts(self, butlerRootPath, visitList, filterType,
                        defocalState, camera, pix2arcsec,
                        templateType, donutImgSize, overlapDistance,
-                       maxSensorStars=None):
+                       doDeblending, expWcs, maxSensorStars=None):
 
         butler = dafPersist.Butler(butlerRootPath)
 
         visitOn = visitList[0]
-        full_unblended_df = None
+        full_results_df = None
         # detector has 'R:0,0 S:2,2,A' format
         for detector in camera.getWfsCcdList():
             
@@ -61,53 +60,63 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
                                            abbrevName, pix2arcsec,
                                            templateType, donutImgSize)
             donut_detect = DonutDetector(template)
-            donut_df, image_thresh = donut_detect.detectDonuts(postISR, overlapDistance)
 
-            ranked_unblended_df = donut_detect.rankUnblendedByFlux(donut_df,
-                                                                   postISR)
-            ranked_unblended_df = ranked_unblended_df.reset_index(drop=True)
+            donut_df, image_thresh = donut_detect.detectDonuts(postISR,
+                                                               overlapDistance)
+
+            # Update WCS if using exposure WCS for source selection
+            # if expWcs is True:
+            #     camera._wcs.wcsData[detector] = raw.getWcs()
+
+            if doDeblending is False:
+                sensor_results_df = donut_detect.rankUnblendedByFlux(donut_df,
+                                                                     postISR)
+                sensor_results_df = sensor_results_df.reset_index(drop=True)
+            else:
+                sensor_results_df = donut_df
+
 
             if maxSensorStars is not None:
-                ranked_unblended_df = ranked_unblended_df.iloc[:maxSensorStars]
+                sensor_results_df = sensor_results_df.iloc[:maxSensorStars]
 
             # Make coordinate change appropriate to sourProc.dmXY2CamXY
             # FIXME: This is a temporary workaround
             # Transpose because wepcntl. _transImgDmCoorToCamCoor
-            if self.expWcs is False:
+            if expWcs is False:
                 # Transpose because wepcntl. _transImgDmCoorToCamCoor
                 dimY, dimX = list(postISR.getDimensions())
-                pixelCamX = ranked_unblended_df['x_center'].values
-                pixelCamY = dimX - ranked_unblended_df['y_center'].values
-                ranked_unblended_df['x_center'] = pixelCamX
-                ranked_unblended_df['y_center'] = pixelCamY
+                pixelCamX = sensor_results_df['x_center'].values
+                pixelCamY = dimX - sensor_results_df['y_center'].values
+                sensor_results_df['x_center'] = pixelCamX
+                sensor_results_df['y_center'] = pixelCamY
 
             ra, dec = camera._wcs.raDecFromPixelCoords(
-                ranked_unblended_df['x_center'].values,
-                ranked_unblended_df['y_center'].values,
+                sensor_results_df['x_center'].values,
+                sensor_results_df['y_center'].values,
                 # pixelCamX, pixelCamY,
                 detector, epoch=2000.0, includeDistortion=True
             )
 
-            ranked_unblended_df['ra'] = ra
-            ranked_unblended_df['dec'] = dec
-            ranked_unblended_df['raft'] = raft
-            ranked_unblended_df['sensor'] = sensor
+            sensor_results_df['ra'] = ra
+            sensor_results_df['dec'] = dec
+            sensor_results_df['raft'] = raft
+            sensor_results_df['sensor'] = sensor
 
-            if full_unblended_df is None:
-                full_unblended_df = ranked_unblended_df.copy(deep=True)
+            if full_results_df is None:
+                full_results_df = sensor_results_df.copy(deep=True)
             else:
-                full_unblended_df = full_unblended_df.append(
-                    ranked_unblended_df)
+                full_results_df = full_results_df.append(
+                    sensor_results_df)
 
-        full_unblended_df = full_unblended_df.reset_index(drop=True)
+        full_results_df = full_results_df.reset_index(drop=True)
 
         # FIXME: Actually estimate magnitude
-        full_unblended_df['mag'] = 15.
+        full_results_df['mag'] = 15.
 
         # TODO: Comment out when not debugging
-        full_unblended_df.to_csv('image_donut_df.csv')
+        # full_results_df.to_csv('image_donut_df.csv')
 
-        return full_unblended_df
+        return full_results_df
 
     def writeSkyFile(self, unblendedDf, fileOut):
 

@@ -50,7 +50,7 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
             data_id = {'visit': visitOn, 'filter': filterType.toString(),
                        'raftName': raft, 'detectorName': sensor}
             # only query data that exists 
-            if butler.datasetExists('postISRCCD', data_id): 
+            if not butler.datasetExists('postISRCCD', data_id): 
                 continue 
 
             print(data_id)

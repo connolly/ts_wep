@@ -38,23 +38,24 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
                        maxSensorStars=None):
 
         butler = dafPersist.Butler(butlerRootPath)
-        sensorList = butler.queryMetadata('postISRCCD', 'detectorName')
+              
         visitOn = visitList[0]
         full_unblended_df = None
         # detector has 'R:0,0 S:2,2,A' format
         for detector in camera.getWfsCcdList():
-
+            
             # abbrevName has R00_S22_C0 format
             abbrevName = abbrevDetectorName(detector)
             raft, sensor = parseAbbrevDetectorName(abbrevName)
 
-            if sensor not in sensorList:
-                continue
-
             data_id = {'visit': visitOn, 'filter': filterType.toString(),
                        'raftName': raft, 'detectorName': sensor}
-            print(data_id)
+            # only query data that exists 
+            if butler.datasetExists('postISRCCD', data_id): 
+                continue 
 
+            print(data_id)
+            
             # TODO: Rename this to reflect this is postISR not raw image.
             raw = butler.get('postISRCCD', **data_id)
             template = createTemplateImage(defocalState,

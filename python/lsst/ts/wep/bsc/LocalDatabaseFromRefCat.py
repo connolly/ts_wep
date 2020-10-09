@@ -22,12 +22,11 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
     PRE_TABLE_NAME = "StarTable"
 
     def insertDataFromRefCat(self, butlerRootPath, settingFileInst,
-                            visitList, defocalState,
-                            filterType, camera,
-                            skiprows=1, keepFile=True,
-                            fileOut='foundDonuts.txt'):
+                             visitList, defocalState,
+                             filterType, camera,
+                             skiprows=1, fileOut='foundDonuts.txt'):
 
-        self.expWcs = settingFileInst.getSetting("expWcs")
+        expWcs = settingFileInst.getSetting("expWcs")
         centroidTemplateType = settingFileInst.getSetting("centroidTemplateType")
         donutImgSize = settingFileInst.getSetting("donutImgSizeInPixel")
         overlapDistance = settingFileInst.getSetting("minUnblendedDistance")
@@ -37,12 +36,13 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
         refCatDir = settingFileInst.getSetting("refCatDir")
         pix2arcsec = settingFileInst.getSetting("pixelToArcsec")
         refButler = dafPersist.Butler(refCatDir)
-        self.refObjLoader = LoadIndexedReferenceObjectsTask(butler=refButler)
+        refObjLoader = LoadIndexedReferenceObjectsTask(butler=refButler)
         skyDf = self.identifyDonuts(butlerRootPath, visitList, filterType,
                                     defocalState, camera, pix2arcsec,
                                     centroidTemplateType, donutImgSize,
                                     overlapDistance, doDeblending,
-                                    blendMagDiff, maxSensorStars)
+                                    blendMagDiff, expWcs,
+                                    refObjLoader, maxSensorStars)
         self.writeSkyFile(skyDf, fileOut)
         self.insertDataByFile(fileOut, filterType, skiprows=1)
 
@@ -51,7 +51,8 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
     def identifyDonuts(self, butlerRootPath, visitList, filterType,
                        defocalState, camera, pix2arcsec,
                        templateType, donutImgSize, overlapDistance,
-                       doDeblending, blendMagDiffLimit, maxSensorStars=None):
+                       doDeblending, blendMagDiffLimit, expWcs,
+                       refObjLoader, maxSensorStars=None):
 
         butler = dafPersist.Butler(butlerRootPath)
         sensorList = butler.queryMetadata('postISRCCD', 'detectorName')
@@ -75,7 +76,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
                                            abbrevName, pix2arcsec,
                                            templateType, donutImgSize)
             donut_detect = DonutDetector(template)
-            # min_overlap_distance = 10. # Use for detecting for ref_cat matching
+            # min_overlap_distance = 10. # Use for detecting for ref_cat match
             # Astrometry WCS matching requires at least 7 sources
             # Continue lowering threshold until we meet this requirement
             # Use 10 just to make sure we have some leeway
@@ -86,19 +87,19 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
                     raw, overlapDistance, image_thresh)
                 image_thresh = image_thresh*.75
                 donut_df_len = len(donut_df)
-            donut_df.to_csv('source_donut_df_%s.csv' % sensor)
+            # donut_df.to_csv('source_donut_df_%s.csv' % sensor)
             source_cat = self.makeSourceCat(donut_df)
-            wcs_solver_result, new_wcs = self.solveWCS(raw, source_cat)
-            print(new_wcs)
+            wcs_solver_result, new_wcs = self.solveWCS(raw, source_cat,
+                                                       refObjLoader)
 
             # Update WCS if using exposure WCS for source selection
-            if self.expWcs is True:
+            if expWcs is True:
                 camera._wcs.wcsData[detector] = new_wcs
 
             ref_cat = wcs_solver_result.refCat
             ref_cat_df = ref_cat.asAstropy().to_pandas()
             x_lim, y_lim = list(raw.getDimensions())
-            ref_cat_df.to_csv('image_donut_df_%s_0.csv' % sensor)
+            # ref_cat_df.to_csv('image_donut_df_%s_0.csv' % sensor)
 
             ranked_ref_cat_df = ref_cat_df.sort_values(['phot_g_mean_flux'],
                                                        ascending=False)
@@ -158,7 +159,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
 
             # Make coordinate change appropriate to sourProc.dmXY2CamXY
             # FIXME: This is a temporary workaround
-            if self.expWcs is False:
+            if expWcs is False:
                 # Transpose because wepcntl. _transImgDmCoorToCamCoor
                 dimY, dimX = list(raw.getDimensions())
                 pixelCamX = ranked_ref_cat_df['centroid_x'].values
@@ -169,8 +170,6 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
                 ranked_ref_cat_df['x_center'] = ranked_ref_cat_df['centroid_x']
                 ranked_ref_cat_df['y_center'] = ranked_ref_cat_df['centroid_y']
 
-            print(ranked_ref_cat_df['ra'])
-
             ra, dec = camera._wcs.raDecFromPixelCoords(
                 ranked_ref_cat_df['x_center'].values,
                 ranked_ref_cat_df['y_center'].values,
@@ -180,7 +179,6 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
 
             ranked_ref_cat_df['ra'] = ra
             ranked_ref_cat_df['dec'] = dec
-            print(ranked_ref_cat_df['ra'])
 
             ranked_ref_cat_df = ranked_ref_cat_df.query(
                 str('x_center < %i and y_center < %i and ' %
@@ -198,7 +196,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
         full_ref_cat_df = full_ref_cat_df.reset_index(drop=True)
 
         # TODO: Comment out when not debugging
-        full_ref_cat_df.to_csv('image_donut_df.csv')
+        # full_ref_cat_df.to_csv('image_donut_df.csv')
 
         return full_ref_cat_df
 
@@ -228,7 +226,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
 
         return sourceCat
 
-    def solveWCS(self, raw, sourceCat):
+    def solveWCS(self, raw, sourceCat, refObjLoader):
 
         exposure = deepcopy(raw)
 
@@ -256,7 +254,8 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
         exposure.setFilter(referenceFilter)
 
         sourceSchema = sourceCat.getSchema()
-        solver = AstrometryTask(config=astromConfig, refObjLoader=self.refObjLoader, schema=sourceSchema,)
+        solver = AstrometryTask(config=astromConfig, refObjLoader=refObjLoader,
+                                schema=sourceSchema,)
         results = solver.run(sourceCat=sourceCat, exposure=exposure,)
 
         return results, exposure.getWcs()

@@ -42,19 +42,19 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
         full_results_df = None
         # detector has 'R:0,0 S:2,2,A' format
         for detector in camera.getWfsCcdList():
-            
+
             # abbrevName has R00_S22_C0 format
             abbrevName = abbrevDetectorName(detector)
             raft, sensor = parseAbbrevDetectorName(abbrevName)
 
             data_id = {'visit': visitOn, 'filter': filterType.toString(),
                        'raftName': raft, 'detectorName': sensor}
-            # only query data that exists 
-            if not butler.datasetExists('postISRCCD', data_id): 
-                continue 
+            # only query data that exists
+            if not butler.datasetExists('postISRCCD', data_id):
+                continue
 
             print(data_id)
-            
+
             postISR = butler.get('postISRCCD', **data_id)
             template = createTemplateImage(defocalState,
                                            abbrevName, pix2arcsec,

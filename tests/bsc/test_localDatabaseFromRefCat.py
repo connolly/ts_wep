@@ -1,6 +1,5 @@
 import os
 import shutil
-import numpy as np
 import pandas as pd
 import unittest
 
@@ -105,7 +104,8 @@ class TestLocalDatabaseFromRefCat(unittest.TestCase):
                                                'detectorName': 'S11'})
         refObjLoader = LoadIndexedReferenceObjectsTask(butler=self.refButler)
         srcCatFile = os.path.join(self.modulePath, "tests", "testData",
-                                  "sampleGaiaPhosim", 'source_donut_df_S11.csv')
+                                  "sampleGaiaPhosim",
+                                  "source_donut_df_S11.csv")
         df = pd.read_csv(srcCatFile)
         srcCat = self.db.makeSourceCat(df)
         results, newWcs = self.db.solveWCS(exp, srcCat, refObjLoader)

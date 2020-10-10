@@ -113,7 +113,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
             mag_list = (ranked_ref_cat_df['phot_g_mean_flux'].values * u.nJy).to(u.ABmag)
             ranked_ref_cat_df['mag'] = np.array(mag_list)
 
-            ranked_ref_cat_df.to_csv('image_donut_df_%s.csv' % sensor)
+            # ranked_ref_cat_df.to_csv('image_donut_df_%s.csv' % sensor)
 
             if (doDeblending is False) and (blendMagDiffLimit is None):
                 ranked_ref_cat_df = ranked_ref_cat_df.query('blended == False').reset_index(drop=True)

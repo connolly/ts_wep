@@ -76,8 +76,8 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
                                           donutImgSize, deblendRadius,
                                           doDeblending, useExpWcs)
 
-        self.assertTrue(len(donut_df), 4)
-        np.testing.assert_array_equal(donut_df.blended.values, [False]*4)
+        self.assertTrue(len(donut_df), 2)
+        np.testing.assert_array_equal(donut_df.blended.values, [False]*2)
 
         # Without using expWcs
         useExpWcs = False
@@ -88,8 +88,8 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
                                             donutImgSize, deblendRadius,
                                             doDeblending, useExpWcs)
 
-        self.assertTrue(len(donut_df_2), 4)
-        np.testing.assert_array_equal(donut_df_2.blended.values, [False]*4)
+        self.assertTrue(len(donut_df_2), 2)
+        np.testing.assert_array_equal(donut_df_2.blended.values, [False]*2)
 
         # With deblending turned on
         doDeblending = True
@@ -100,9 +100,9 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
                                             donutImgSize, deblendRadius,
                                             doDeblending, useExpWcs)
 
-        self.assertTrue(len(donut_df_3), 8)
-        self.assertTrue(len(donut_df_3.query('blended == False')), 4)
-        self.assertTrue(len(donut_df_3.query('blended == True')), 4)
+        self.assertTrue(len(donut_df_3), 4)
+        self.assertTrue(len(donut_df_3.query('blended == False')), 2)
+        self.assertTrue(len(donut_df_3.query('blended == True')), 2)
 
         # With maxSensorStars set
         doDeblending = False
@@ -114,7 +114,7 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
                                             doDeblending, useExpWcs,
                                             maxSensorStars=1)
 
-        self.assertTrue(len(donut_df_4), 2)
+        self.assertTrue(len(donut_df_4), 1)
 
     def testWriteSkyFile(self):
 
@@ -134,7 +134,7 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
                                     [9005000], 'extra', self.filterType,
                                     self.camera, fileOut=skyFileName)
         idAll = self.db.getAllId(self.filterType)
-        self.assertTrue(len(idAll), 4)
+        self.assertTrue(len(idAll), 2)
 
 
 if __name__ == "__main__":

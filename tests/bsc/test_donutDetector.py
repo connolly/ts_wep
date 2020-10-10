@@ -61,7 +61,9 @@ class TestDonutDetector(unittest.TestCase):
 
     def testThresholdExpFAndTemp(self):
 
-        bExp, bTemplate, thresh = self.extraDetector.thresholdExpFAndTemp(self.extraExp)
+        bExp, bTemplate, thresh = self.extraDetector.thresholdExpFAndTemp(
+            self.extraExp
+        )
 
         # Test that binary arrays are binary
         self.assertEqual(np.min(bExp.image.array), 0)

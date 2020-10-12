@@ -1,30 +1,39 @@
-from lsst.ts.wep.Utility import FilterType, mapFilterRefToG
+# This file is part of ts_wep.
+#
+# Developed for the LSST Telescope and Site Systems.
+# This product includes software developed by the LSST Project
+# (https://www.lsst.org).
+# See the COPYRIGHT file at the top-level directory of this distribution
+# for details of code ownership.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import os
+
+from lsst.ts.wep.Utility import FilterType, mapFilterRefToG, getConfigDir
+from lsst.ts.wep.ParamReader import ParamReader
 
 
 class Filter(object):
-
-    # Magnitude boundary for each filter type
-    U_LOW_MAG = 7.94
-    U_HIGH_MAG = 14.80
-
-    G_LOW_MAG = 9.74
-    G_HIGH_MAG = 16.17
-
-    R_LOW_MAG = 9.56
-    R_HIGH_MAG = 15.73
-
-    I_LOW_MAG = 9.22
-    I_HIGH_MAG = 15.26
-
-    Z_LOW_MAG = 8.83
-    Z_HIGH_MAG = 14.68
-
-    Y_LOW_MAG = 8.02
-    Y_HIGH_MAG = 13.76
-
     def __init__(self):
         """Initialize the filter class."""
 
+        # Configuration file of the limit of star's magnitude
+        pathMagLimitStar = os.path.join(getConfigDir(), "bsc", "magLimitStar.yaml")
+        self._fileMagLimitStar = ParamReader(filePath=pathMagLimitStar)
+
+        # Filter type in use
         self.filter = FilterType.U
 
     def getFilter(self):
@@ -65,39 +74,28 @@ class Filter(object):
             No filter type matches.
         """
 
-        lowMagnitude = 0
-        highMagnitude = 0
-
         mappedFilterType = mapFilterRefToG(self.filter)
-        if (mappedFilterType == FilterType.U):
-            lowMagnitude = self.U_LOW_MAG
-            highMagnitude = self.U_HIGH_MAG
+        if mappedFilterType == FilterType.U:
+            filterName = "filterU"
 
-        elif (mappedFilterType == FilterType.G):
-            lowMagnitude = self.G_LOW_MAG
-            highMagnitude = self.G_HIGH_MAG
+        elif mappedFilterType == FilterType.G:
+            filterName = "filterG"
 
-        elif (mappedFilterType == FilterType.R):
-            lowMagnitude = self.R_LOW_MAG
-            highMagnitude = self.R_HIGH_MAG
+        elif mappedFilterType == FilterType.R:
+            filterName = "filterR"
 
-        elif (mappedFilterType == FilterType.I):
-            lowMagnitude = self.I_LOW_MAG
-            highMagnitude = self.I_HIGH_MAG
+        elif mappedFilterType == FilterType.I:
+            filterName = "filterI"
 
-        elif (mappedFilterType == FilterType.Z):
-            lowMagnitude = self.Z_LOW_MAG
-            highMagnitude = self.Z_HIGH_MAG
+        elif mappedFilterType == FilterType.Z:
+            filterName = "filterZ"
 
-        elif (mappedFilterType == FilterType.Y):
-            lowMagnitude = self.Y_LOW_MAG
-            highMagnitude = self.Y_HIGH_MAG
+        elif mappedFilterType == FilterType.Y:
+            filterName = "filterY"
 
         else:
             raise ValueError("No filter type matches.")
 
-        return lowMagnitude, highMagnitude
+        rangeMag = self._fileMagLimitStar.getSetting(filterName)
 
-
-if __name__ == "__main__":
-    pass
+        return rangeMag["low"], rangeMag["high"]

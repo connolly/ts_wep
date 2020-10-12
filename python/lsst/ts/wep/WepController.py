@@ -1,3 +1,24 @@
+# This file is part of ts_wep.
+#
+# Developed for the LSST Telescope and Site Systems.
+# This product includes software developed by the LSST Project
+# (https://www.lsst.org).
+# See the COPYRIGHT file at the top-level directory of this distribution
+# for details of code ownership.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import re
 import os
 import warnings
@@ -6,15 +27,27 @@ import numpy as np
 from lsst.ts.wep.ButlerWrapper import ButlerWrapper
 from lsst.ts.wep.DefocalImage import DefocalImage
 from lsst.ts.wep.DonutImage import DonutImage
-from lsst.ts.wep.Utility import abbrevDetectorName, searchDonutPos, \
-	DefocalType, ImageType, getModulePath
+from lsst.ts.wep.Utility import (
+    abbrevDetectorName,
+    searchDonutPos,
+    DefocalType,
+    ImageType,
+    getModulePath
+)
 
 
 class WepController(object):
 
-	CORNER_WFS_LIST = ["R:0,0 S:2,2,A", "R:0,0 S:2,2,B", "R:0,4 S:2,0,A",
-					   "R:0,4 S:2,0,B", "R:4,0 S:0,2,A", "R:4,0 S:0,2,B",
-					   "R:4,4 S:0,0,A", "R:4,4 S:0,0,B"]
+    CORNER_WFS_LIST = [
+        "R:0,0 S:2,2,A",
+        "R:0,0 S:2,2,B",
+        "R:0,4 S:2,0,A",
+        "R:0,4 S:2,0,B",
+        "R:4,0 S:0,2,A",
+        "R:4,0 S:0,2,B",
+        "R:4,4 S:0,0,A",
+        "R:4,4 S:0,0,B",
+    ]
 
 	def __init__(self, dataCollector, isrWrapper, sourSelc, sourProc, wfEsti):
 		"""Initialize the wavefront estimation pipeline (WEP) controller class.
@@ -391,8 +424,7 @@ class WepController(object):
 		donutMap = dict()
 		for sensorName, nbrStar in neighborStarMap.items():
 
-			# Get the abbraviated sensor name
-			# that's eg., R22_S20 ...
+			# Get the abbreviated sensor name
 			abbrevName = abbrevDetectorName(sensorName)
 
 			# Configure the source processor
@@ -401,8 +433,10 @@ class WepController(object):
 			# Get the defocal images: [intra, extra]
 			# Note: the corner sensors have only either intra or extra
 			# image, i.e.  'A' have intra,  'B' have extra
-			defocalImgList = [wfsImgMap[sensorName].getIntraImg(),
-							  wfsImgMap[sensorName].getExtraImg()]
+			defocalImgList = [
+				wfsImgMap[sensorName].getIntraImg(),
+				wfsImgMap[sensorName].getExtraImg()
+			]
 
 			# Get deblending template from image
 			detectorTemplateExists = False
@@ -444,10 +478,16 @@ class WepController(object):
 
 					# Get the segment of image
 					if (ccdImg is not None):
-						singleSciNeiImg, allStarPosX, allStarPosY, magRatio, \
-							offsetX, offsetY = \
-							self.sourProc.getSingleTargetImage(
-								ccdImg, nbrStar, starIdIdx, filterType)
+						(
+							singleSciNeiImg, 
+							allStarPosX, 
+							allStarPosY, 
+							magRatio,
+							offsetX, 
+							offsetY,
+						) = self.sourProc.getSingleTargetImage(
+								ccdImg, nbrStar, starIdIdx, filterType
+						)
 
 						# read the catalog starId :
 						starId = brightStarIdList[starIdIdx]
@@ -998,7 +1038,6 @@ class WepController(object):
 								cx - deltaX:cx + deltaX]
 
 		return stackImg
-
 
 if __name__ == "__main__":
 	pass

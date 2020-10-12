@@ -6,6 +6,46 @@
 Version History
 ##################
 
+.. _lsst.ts.wep-1.4.6:
+
+-------------
+1.4.6
+-------------
+
+Use the sims_w_2020_38.
+
+.. _lsst.ts.wep-1.4.5:
+
+-------------
+1.4.5
+-------------
+
+Use the sims_w_2020_36. Support the LSST full-array mode (FAM). Add the classes of **BaseCwfsTestCase** and **BaseBscTestCase**. Put the limits of star's magnitude into a configuration file. Remove the serialization functions in **FilterType** enum.
+
+.. _lsst.ts.wep-1.4.4:
+
+-------------
+1.4.4
+-------------
+
+Use the pybind11 instead of cython. Add the clang-format check to .githooks.
+
+.. _lsst.ts.wep-1.4.3:
+
+-------------
+1.4.3
+-------------
+
+Reformat the code by black. Add the black check to .githooks. Ignore flake8 check of E203 ans W503 for the black. Use the sims_w_2020_21.
+
+.. _lsst.ts.wep-1.4.2:
+
+-------------
+1.4.2
+-------------
+
+Improved handling of IO errors - catch more OS Errors instead of only file not exists.
+
 .. _lsst.ts.wep-1.4.1:
 
 -------------

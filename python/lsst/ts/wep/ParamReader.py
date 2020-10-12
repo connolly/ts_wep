@@ -1,3 +1,24 @@
+# This file is part of ts_wep.
+#
+# Developed for the LSST Telescope and Site Systems.
+# This product includes software developed by the LSST Project
+# (https://www.lsst.org).
+# See the COPYRIGHT file at the top-level directory of this distribution
+# for details of code ownership.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import os
 import numpy as np
 import yaml
@@ -5,7 +26,6 @@ import warnings
 
 
 class ParamReader(object):
-
     def __init__(self, filePath=None):
         """Initialization of parameter reader of yaml format class.
 
@@ -15,12 +35,12 @@ class ParamReader(object):
             File path. (the default is None.)
         """
 
-        if (filePath is None):
+        if filePath is None:
             self.filePath = ""
+            self._content = dict()
         else:
             self.filePath = filePath
-
-        self._content = self._readContent(self.filePath)
+            self._content = self._readContent(self.filePath)
 
     def _readContent(self, filePath):
         """Read the content of file.
@@ -36,13 +56,12 @@ class ParamReader(object):
             Content of file.
         """
 
-        if (os.path.exists(filePath)):
+        try:
             with open(filePath, "r") as yamlFile:
-                content = yaml.safe_load(yamlFile)
-        else:
-            content = dict()
-
-        return content
+                return yaml.safe_load(yamlFile)
+        except IOError as err:
+            warnings.warn(f"Cannot open {filePath}: {str(err)}.", category=UserWarning)
+            return dict()
 
     def getFilePath(self):
         """Get the parameter file path.
@@ -147,7 +166,7 @@ class ParamReader(object):
             Matrix content.
         """
 
-        if (self._content == dict()):
+        if self._content == dict():
             mat = np.array([])
         else:
             mat = np.array(self._content)
@@ -179,8 +198,9 @@ class ParamReader(object):
 
         origVal = self.getSetting(param)
         if not isinstance(value, type(origVal)):
-            warnings.warn("Update with the different type of value.",
-                          category=UserWarning)
+            warnings.warn(
+                "Update with the different type of value.", category=UserWarning
+            )
 
         self._content[param] = value
 
@@ -194,7 +214,7 @@ class ParamReader(object):
             default is None.)
         """
 
-        if (filePath is None):
+        if filePath is None:
             filePath = self.filePath
         else:
             self.filePath = filePath

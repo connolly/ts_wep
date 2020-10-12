@@ -6,10 +6,9 @@ pipeline {
         // Use the docker to assign the Python version.
         // Use the label to assign the node to run the test.
         // It is recommended by SQUARE team do not add the label to let the
-        // sytem decide.
+        // system decide.
         docker {
-            image 'lsstts/aos:w_2020_15'
-            args '-u root'
+            image 'lsstts/aos:w_2020_38'
         }
     }
 
@@ -18,36 +17,42 @@ pipeline {
     }
 
     environment {
-        // Development tool set
-        DEV_TOOL="/opt/rh/devtoolset-8/enable"
         // Position of LSST stack directory
-        LSST_STACK="/opt/lsst/software/stack"
+        LSST_STACK = "/opt/lsst/software/stack"
         // Pipeline Sims Version
-        SIMS_VERSION="sims_w_2020_15"
+        SIMS_VERSION = "sims_w_2020_38"
         // XML report path
-        XML_REPORT="jenkinsReport/report.xml"
+        XML_REPORT = "jenkinsReport/report.xml"
         // Module name used in the pytest coverage analysis
-        MODULE_NAME="lsst.ts.wep"
+        MODULE_NAME = "lsst.ts.wep"
     }
 
     stages {
-        stage ('Install Requirements') {
+
+        stage('Cloning Repos') {
+            steps {
+                withEnv(["HOME=${env.WORKSPACE}"]) {
+                    sh """
+                        git clone -b master https://github.com/lsst-dm/phosim_utils.git
+                    """
+                }
+            }
+        }
+
+        stage ('Building the Dependencies') {
             steps {
                 // When using the docker container, we need to change
                 // the HOME path to WORKSPACE to have the authority
                 // to install the packages.
                 withEnv(["HOME=${env.WORKSPACE}"]) {
                     sh """
-                        source ${env.DEV_TOOL}
                         source ${env.LSST_STACK}/loadLSST.bash
-                        git clone --branch master https://github.com/lsst-dm/phosim_utils.git
                         cd phosim_utils/
-                        git checkout 8744592
                         setup -k -r . -t ${env.SIMS_VERSION}
                         scons
                         cd ..
                         setup -k -r .
-                        python builder/setup.py build_ext --build-lib python/lsst/ts/wep/cwfs/lib
+                        scons python
                     """
                 }
             }
@@ -55,14 +60,9 @@ pipeline {
 
         stage('Unit Tests and Coverage Analysis') {
             steps {
-                // Direct the HOME to WORKSPACE for pip to get the
-                // installed library.
-                // 'PATH' can only be updated in a single shell block.
-                // We can not update PATH in 'environment' block.
                 // Pytest needs to export the junit report.
                 withEnv(["HOME=${env.WORKSPACE}"]) {
                     sh """
-                        source ${env.DEV_TOOL}
                         source ${env.LSST_STACK}/loadLSST.bash
                         cd phosim_utils/
                         setup -k -r . -t ${env.SIMS_VERSION}
@@ -77,12 +77,6 @@ pipeline {
 
     post {
         always {
-            // Change the ownership of workspace to Jenkins for the clean up
-            // This is a "work around" method
-            withEnv(["HOME=${env.WORKSPACE}"]) {
-                sh 'chown -R 1003:1003 ${HOME}/'
-            }
-
             // The path of xml needed by JUnit is relative to
             // the workspace.
             junit "${env.XML_REPORT}"
@@ -95,7 +89,7 @@ pipeline {
                 reportDir: 'htmlcov',
                 reportFiles: 'index.html',
                 reportName: "Coverage Report"
-              ])
+            ])
         }
 
         cleanup {

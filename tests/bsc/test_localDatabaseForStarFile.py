@@ -1,40 +1,59 @@
+# This file is part of ts_wep.
+#
+# Developed for the LSST Telescope and Site Systems.
+# This product includes software developed by the LSST Project
+# (https://www.lsst.org).
+# See the COPYRIGHT file at the top-level directory of this distribution
+# for details of code ownership.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import os
-import shutil
+import tempfile
 import numpy as np
 import unittest
 
+from lsst.ts.wep.bsc.BaseBscTestCase import BaseBscTestCase
 from lsst.ts.wep.bsc.LocalDatabaseForStarFile import LocalDatabaseForStarFile
 from lsst.ts.wep.Utility import getModulePath, FilterType
 
 
-class TestLocalDatabaseForStarFile(unittest.TestCase):
+class TestLocalDatabaseForStarFile(BaseBscTestCase, unittest.TestCase):
     """Test the local database for star file class."""
 
     def setUp(self):
 
-        self.modulePath = getModulePath()
+        self.createBscTest()
 
-        self.dataDir = os.path.join(self.modulePath, "tests", "tmp")
-        self._makeDir(self.dataDir)
-
-        self.filterType = FilterType.G
+        # Set up the local database
         self.db = LocalDatabaseForStarFile()
 
-        dbAdress = os.path.join(self.modulePath, "tests", "testData",
-                                "bsc.db3")
+        dbAdress = self.getPathOfBscTest()
         self.db.connect(dbAdress)
 
-    def _makeDir(self, directory):
+        # Set the filter
+        self.filterType = FilterType.G
 
-        if (not os.path.exists(directory)):
-            os.makedirs(directory)
+        # The temporary directory
+        testDir = os.path.join(getModulePath(), "tests")
+        self.dirTemp = tempfile.TemporaryDirectory(dir=testDir)
 
     def tearDown(self):
 
-        self.db.deleteTable(self.filterType)
         self.db.disconnect()
-
-        shutil.rmtree(self.dataDir)
+        self.dirTemp.cleanup()
+        self.removeBscTest()
 
     def testTableIsInDb(self):
 
@@ -60,8 +79,9 @@ class TestLocalDatabaseForStarFile(unittest.TestCase):
         idAll = self.db.getAllId(self.filterType)
         self.assertEqual(len(idAll), 0)
 
-        skyFilePath = os.path.join(self.modulePath, "tests", "testData",
-                                   "skyComCamInfo.txt")
+        skyFilePath = os.path.join(
+            getModulePath(), "tests", "testData", "skyComCamInfo.txt"
+        )
         idAll = self._insertDataToDbAndGetAllId(skyFilePath)
 
         self.assertEqual(len(idAll), 4)
@@ -87,7 +107,7 @@ class TestLocalDatabaseForStarFile(unittest.TestCase):
 
         header = "Id     Ra      Decl        Mag"
         delimiter = "    "
-        filePath = os.path.join(self.dataDir, fileName)
+        filePath = os.path.join(self.dirTemp.name, fileName)
         np.savetxt(filePath, starData, delimiter=delimiter, header=header)
 
         return filePath
@@ -97,7 +117,8 @@ class TestLocalDatabaseForStarFile(unittest.TestCase):
         self._createTable()
 
         skyFilePath = self._writeStarFile("noStar.txt")
-        idAll = self._insertDataToDbAndGetAllId(skyFilePath)
+        with self.assertWarns(UserWarning):
+            idAll = self._insertDataToDbAndGetAllId(skyFilePath)
 
         self.assertEqual(len(idAll), 0)
 

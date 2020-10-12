@@ -1,9 +1,39 @@
+# This file is part of ts_wep.
+#
+# Developed for the LSST Telescope and Site Systems.
+# This product includes software developed by the LSST Project
+# (https://www.lsst.org).
+# See the COPYRIGHT file at the top-level directory of this distribution
+# for details of code ownership.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import os
 import warnings
 
-from lsst.ts.wep.Utility import getModulePath, getConfigDir, BscDbType, \
-    FilterType, abbrevDetectorName, getBscDbType, getImageType, \
-    getCentroidFindType, ImageType, DefocalType
+from lsst.ts.wep.Utility import (
+    getModulePath,
+    getConfigDir,
+    BscDbType,
+    FilterType,
+    abbrevDetectorName,
+    getBscDbType,
+    getImageType,
+    getCentroidFindType,
+    ImageType,
+    DefocalType
+)
 from lsst.ts.wep.CamDataCollector import CamDataCollector
 from lsst.ts.wep.CamIsrWrapper import CamIsrWrapper
 from lsst.ts.wep.SourceProcessor import SourceProcessor
@@ -22,8 +52,7 @@ class WEPCalculation(object):
     types of CCDs (normal, full array mode, comcam, cmos, shwfs).
     """
 
-    def __init__(self, astWcsSol, camType, isrDir,
-                 settingFileName="default.yaml"):
+    def __init__(self, astWcsSol, camType, isrDir, settingFileName="default.yaml"):
         """Construct an WEP calculation object.
 
         Parameters
@@ -87,14 +116,12 @@ class WEPCalculation(object):
         isrWrapper = CamIsrWrapper(self.isrDir)
 
         bscDbType = self._getBscDbType()
-        sourSelc = self._configSourceSelector(camType, bscDbType,
-                                              settingFileName)
+        sourSelc = self._configSourceSelector(camType, bscDbType, settingFileName)
 
         sourProc = SourceProcessor(settingFileName=settingFileName)
         wfsEsti = self._configWfEstimator(camType)
 
-        wepCntlr = WepController(dataCollector, isrWrapper, sourSelc,
-                                 sourProc, wfsEsti)
+        wepCntlr = WepController(dataCollector, isrWrapper, sourSelc, sourProc, wfsEsti)
 
         return wepCntlr
 
@@ -129,8 +156,10 @@ class WEPCalculation(object):
             Configured source selector.
         """
 
+
         sourSelc = SourceSelector(camType, bscDbType, self.isrDir,
                                   settingFileName=settingFileName)
+
         sourSelc.setFilter(FilterType.REF)
 
         return sourSelc
@@ -157,11 +186,14 @@ class WEPCalculation(object):
         centroidFind = self.settingFile.getSetting("centroidFindAlgo")
         centroidFindType = getCentroidFindType(centroidFind)
 
-        wfsEsti.config(solver=solver, camType=camType,
-                       opticalModel=opticalModel,
-                       defocalDisInMm=defocalDistInMm,
-                       sizeInPix=donutImgSizeInPixel,
-                       centroidFindType=centroidFindType)
+        wfsEsti.config(
+            solver=solver,
+            camType=camType,
+            opticalModel=opticalModel,
+            defocalDisInMm=defocalDistInMm,
+            sizeInPix=donutImgSizeInPixel,
+            centroidFindType=centroidFindType,
+        )
 
         return wfsEsti
 
@@ -355,10 +387,9 @@ class WEPCalculation(object):
         """
 
         if (extraRawExpData is None):
-            #raise ValueError("Corner WFS is not supported yet.")
             print('Calculating wavefront error for corner WFS ')
 
-        if (len(rawExpData.getVisit()) != 1):
+        if len(rawExpData.getVisit()) != 1:
             raise ValueError("Only single visit is allowed at this time.")
 
         # When evaluating the eimage, the calibration products are not needed.
@@ -367,12 +398,12 @@ class WEPCalculation(object):
 
         # Ingest the exposure data and do the ISR
         self._ingestImg(rawExpData)
-        if (extraRawExpData is not None):
+        if extraRawExpData is not None:
             self._ingestImg(extraRawExpData)
 
         # Only the amplifier image needs to do the ISR
         imgType = self._getImageType()
-        if (imgType == ImageType.Amp):
+        if imgType == ImageType.Amp:
             self._doIsr(isrConfigfileName="isr_config.py")
 
         # Set the butler inputs path to get the images
@@ -388,7 +419,7 @@ class WEPCalculation(object):
 
         # Calculate the wavefront error
         intraObsId = intraObsIdList[0]
-        if (extraRawExpData is None):
+        if extraRawExpData is None:
             obsIdList = [intraObsId]
         else:
             extraObsIdList = extraRawExpData.getVisit()
@@ -414,12 +445,12 @@ class WEPCalculation(object):
         """
 
         mapperFile = os.path.join(self.isrDir, "_mapper")
-        if (not os.path.exists(mapperFile)):
+        if not os.path.exists(mapperFile):
 
             dataCollector = self.wepCntlr.getDataCollector()
 
             camMapper = self.settingFile.getSetting("camMapper")
-            if (camMapper == "phosim"):
+            if camMapper == "phosim":
                 dataCollector.genPhoSimMapper()
             else:
                 raise ValueError("Mapper (%s) is not supported yet." % camMapper)
@@ -439,10 +470,10 @@ class WEPCalculation(object):
         for rawExpDir in rawExpDirList:
 
             imgType = self._getImageType()
-            if (imgType == ImageType.Amp):
+            if imgType == ImageType.Amp:
                 rawImgFiles = os.path.join(rawExpDir, "*_a_*.fits*")
                 dataCollector.ingestImages(rawImgFiles)
-            elif (imgType == ImageType.Eimg):
+            elif imgType == ImageType.Eimg:
                 rawImgFiles = os.path.join(rawExpDir, "*_e_*.fits*")
                 dataCollector.ingestEimages(rawImgFiles)
 
@@ -470,8 +501,10 @@ class WEPCalculation(object):
 
         isrWrapper = self.wepCntlr.getIsrWrapper()
         isrWrapper.config(doFlat=True, doOverscan=True, fileName=isrConfigfileName)
+
         if rerunName is None:
             rerunName = self._getIsrRerunName()
+
         isrWrapper.doISR(self.isrDir, rerunName=rerunName)
 
     def _getIsrRerunName(self):
@@ -495,10 +528,10 @@ class WEPCalculation(object):
         """
 
         imgType = self._getImageType()
-        if (imgType == ImageType.Amp):
+        if imgType == ImageType.Amp:
             rerunName = self._getIsrRerunName()
             return os.path.join(self.isrDir, "rerun", rerunName)
-        elif (imgType == ImageType.Eimg):
+        elif imgType == ImageType.Eimg:
             return self.isrDir
 
     def _getTargetStar(self, visitList, defocalState):
@@ -531,12 +564,12 @@ class WEPCalculation(object):
         sourSelc.setObsMetaData(self.raInDeg, self.decInDeg, self.rotSkyPos)
 
         camDimOffset = self.settingFile.getSetting("camDimOffset")
-        if (bscDbType == BscDbType.LocalDb):
+        if bscDbType == BscDbType.LocalDb:
             neighborStarMap = sourSelc.getTargetStar(offset=camDimOffset)[0]
-        elif (bscDbType == BscDbType.LocalDbForStarFile):
+        elif bscDbType == BscDbType.LocalDbForStarFile:
             skyFile = self._assignSkyFile()
             neighborStarMap = sourSelc.getTargetStarByFile(
-                skyFile, visitList, offset=camDimOffset)[0]
+            skyFile, visitList, offset=camDimOffset)[0]
         elif (bscDbType == BscDbType.LocalDbFromImage):
             neighborStarMap = sourSelc.getTargetStarFromImage(
                 self._getButlerRootPath(), visitList, defocalState,
@@ -567,11 +600,11 @@ class WEPCalculation(object):
         if isSkyFileExist:
             skyFile = self.skyFile
         else:
-            warnings.warn("No sky file assigned. Use the default one.",
-                          category=UserWarning)
+            warnings.warn(
+                "No sky file assigned. Use the default one.", category=UserWarning
+            )
 
-            skyFileRelativePath = self.settingFile.getSetting(
-                "defaultSkyFilePath")
+            skyFileRelativePath = self.settingFile.getSetting("defaultSkyFilePath")
             skyFile = os.path.join(getModulePath(), skyFileRelativePath)
 
         return skyFile

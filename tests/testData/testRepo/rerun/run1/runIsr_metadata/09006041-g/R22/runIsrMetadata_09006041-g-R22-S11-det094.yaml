@@ -1,0 +1,464 @@
+!<lsst.daf.base.PropertySet>
+- - runIsr:isr:masking
+  - PropertySet
+  - !<lsst.daf.base.PropertyList> []
+- - runIsr:isr:vignette
+  - PropertySet
+  - !<lsst.daf.base.PropertyList> []
+- - runIsr:isr:fringe
+  - PropertySet
+  - !<lsst.daf.base.PropertyList> []
+- - runIsr:isr:overscan
+  - PropertySet
+  - !<lsst.daf.base.PropertyList> []
+- - runIsr:isr
+  - PropertySet
+  - !<lsst.daf.base.PropertyList>
+    - - runDataRefStartUtc
+      - String
+      - '2020-10-08T19:54:48.501658'
+      - ''
+    - - runDataRefStartCpuTime
+      - Double
+      - 19.762774389
+      - ''
+    - - runDataRefStartUserTime
+      - Double
+      - 13.345285
+      - ''
+    - - runDataRefStartSystemTime
+      - Double
+      - 6.417541
+      - ''
+    - - runDataRefStartMaxResidentSetSize
+      - LongLong
+      - 252672
+      - ''
+    - - runDataRefStartMinorPageFaults
+      - LongLong
+      - 215126
+      - ''
+    - - runDataRefStartMajorPageFaults
+      - LongLong
+      - 18
+      - ''
+    - - runDataRefStartBlockInputs
+      - LongLong
+      - 12280
+      - ''
+    - - runDataRefStartBlockOutputs
+      - LongLong
+      - 24
+      - ''
+    - - runDataRefStartVoluntaryContextSwitches
+      - LongLong
+      - 1959
+      - ''
+    - - runDataRefStartInvoluntaryContextSwitches
+      - LongLong
+      - 1587106
+      - ''
+    - - runStartUtc
+      - String
+      - '2020-10-08T19:54:52.668543'
+      - ''
+    - - runStartCpuTime
+      - Double
+      - 23.691738755
+      - ''
+    - - runStartUserTime
+      - Double
+      - 16.471725
+      - ''
+    - - runStartSystemTime
+      - Double
+      - 7.220071
+      - ''
+    - - runStartMaxResidentSetSize
+      - LongLong
+      - 682240
+      - ''
+    - - runStartMinorPageFaults
+      - LongLong
+      - 473751
+      - ''
+    - - runStartMajorPageFaults
+      - LongLong
+      - 21
+      - ''
+    - - runStartBlockInputs
+      - LongLong
+      - 394816
+      - ''
+    - - runStartBlockOutputs
+      - LongLong
+      - 32
+      - ''
+    - - runStartVoluntaryContextSwitches
+      - LongLong
+      - 2062
+      - ''
+    - - runStartInvoluntaryContextSwitches
+      - LongLong
+      - 1587343
+      - ''
+    - - ISR OSCAN C10 MEDIAN
+      - Double
+      - 989.9435058078142
+      - ''
+    - - ISR OSCAN C10 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C11 MEDIAN
+      - Double
+      - 985.0364238410596
+      - ''
+    - - ISR OSCAN C11 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C12 MEDIAN
+      - Double
+      - 1012.9560522350578
+      - ''
+    - - ISR OSCAN C12 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C13 MEDIAN
+      - Double
+      - 950.0220417633411
+      - ''
+    - - ISR OSCAN C13 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C14 MEDIAN
+      - Double
+      - 950.0440778799351
+      - ''
+    - - ISR OSCAN C14 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C15 MEDIAN
+      - Double
+      - 987.0385321100918
+      - ''
+    - - ISR OSCAN C15 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C16 MEDIAN
+      - Double
+      - 953.927012987013
+      - ''
+    - - ISR OSCAN C16 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C17 MEDIAN
+      - Double
+      - 1002.9908616187989
+      - ''
+    - - ISR OSCAN C17 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C07 MEDIAN
+      - Double
+      - 1002.0209183673469
+      - ''
+    - - ISR OSCAN C07 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C06 MEDIAN
+      - Double
+      - 1019.9928909952606
+      - ''
+    - - ISR OSCAN C06 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C05 MEDIAN
+      - Double
+      - 1007.05039193729
+      - ''
+    - - ISR OSCAN C05 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C04 MEDIAN
+      - Double
+      - 990.9657676348547
+      - ''
+    - - ISR OSCAN C04 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C03 MEDIAN
+      - Double
+      - 1015.0068870523417
+      - ''
+    - - ISR OSCAN C03 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C02 MEDIAN
+      - Double
+      - 995.9152806652806
+      - ''
+    - - ISR OSCAN C02 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C01 MEDIAN
+      - Double
+      - 1002.0050968399593
+      - ''
+    - - ISR OSCAN C01 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR OSCAN C00 MEDIAN
+      - Double
+      - 984.0311510031679
+      - ''
+    - - ISR OSCAN C00 STDEV
+      - Double
+      - .nan
+      - ''
+    - - ISR VARIANCE C10 MEDIAN
+      - Double
+      - 18.85401725769043
+      - ''
+    - - ISR VARIANCE C10 STDEV
+      - Double
+      - 2.385604374097587
+      - ''
+    - - ISR VARIANCE C11 MEDIAN
+      - Double
+      - 16.87346839904785
+      - ''
+    - - ISR VARIANCE C11 STDEV
+      - Double
+      - 2.217333978278482
+      - ''
+    - - ISR VARIANCE C12 MEDIAN
+      - Double
+      - 17.51165199279785
+      - ''
+    - - ISR VARIANCE C12 STDEV
+      - Double
+      - 2.3685466336627434
+      - ''
+    - - ISR VARIANCE C13 MEDIAN
+      - Double
+      - 19.253314971923828
+      - ''
+    - - ISR VARIANCE C13 STDEV
+      - Double
+      - 2.26330008069222
+      - ''
+    - - ISR VARIANCE C14 MEDIAN
+      - Double
+      - 18.03339385986328
+      - ''
+    - - ISR VARIANCE C14 STDEV
+      - Double
+      - 2.5557955840317295
+      - ''
+    - - ISR VARIANCE C15 MEDIAN
+      - Double
+      - 17.617542266845703
+      - ''
+    - - ISR VARIANCE C15 STDEV
+      - Double
+      - 2.1544419114474285
+      - ''
+    - - ISR VARIANCE C16 MEDIAN
+      - Double
+      - 17.853515625
+      - ''
+    - - ISR VARIANCE C16 STDEV
+      - Double
+      - 2.723840429677525
+      - ''
+    - - ISR VARIANCE C17 MEDIAN
+      - Double
+      - 17.477876663208008
+      - ''
+    - - ISR VARIANCE C17 STDEV
+      - Double
+      - 2.4017518311498414
+      - ''
+    - - ISR VARIANCE C07 MEDIAN
+      - Double
+      - 16.083065032958984
+      - ''
+    - - ISR VARIANCE C07 STDEV
+      - Double
+      - 2.426657123674091
+      - ''
+    - - ISR VARIANCE C06 MEDIAN
+      - Double
+      - 18.322832107543945
+      - ''
+    - - ISR VARIANCE C06 STDEV
+      - Double
+      - 2.647900708735306
+      - ''
+    - - ISR VARIANCE C05 MEDIAN
+      - Double
+      - 14.1462984085083
+      - ''
+    - - ISR VARIANCE C05 STDEV
+      - Double
+      - 2.392553914500637
+      - ''
+    - - ISR VARIANCE C04 MEDIAN
+      - Double
+      - 18.077573776245117
+      - ''
+    - - ISR VARIANCE C04 STDEV
+      - Double
+      - 2.473961374155355
+      - ''
+    - - ISR VARIANCE C03 MEDIAN
+      - Double
+      - 13.834463119506836
+      - ''
+    - - ISR VARIANCE C03 STDEV
+      - Double
+      - 2.533587605121863
+      - ''
+    - - ISR VARIANCE C02 MEDIAN
+      - Double
+      - 16.18100357055664
+      - ''
+    - - ISR VARIANCE C02 STDEV
+      - Double
+      - 2.5249626823421334
+      - ''
+    - - ISR VARIANCE C01 MEDIAN
+      - Double
+      - 15.073140144348145
+      - ''
+    - - ISR VARIANCE C01 STDEV
+      - Double
+      - 2.29388214222707
+      - ''
+    - - ISR VARIANCE C00 MEDIAN
+      - Double
+      - 16.384763717651367
+      - ''
+    - - ISR VARIANCE C00 STDEV
+      - Double
+      - 2.4351327803294516
+      - ''
+    - - NUMNANS
+      - Int
+      - 0
+      - ''
+    - - runEndUtc
+      - String
+      - '2020-10-08T19:55:01.018339'
+      - ''
+    - - runEndCpuTime
+      - Double
+      - 31.928787747
+      - ''
+    - - runEndUserTime
+      - Double
+      - 23.610979
+      - ''
+    - - runEndSystemTime
+      - Double
+      - 8.317879
+      - ''
+    - - runEndMaxResidentSetSize
+      - LongLong
+      - 1082788
+      - ''
+    - - runEndMinorPageFaults
+      - LongLong
+      - 959099
+      - ''
+    - - runEndMajorPageFaults
+      - LongLong
+      - 27
+      - ''
+    - - runEndBlockInputs
+      - LongLong
+      - 395856
+      - ''
+    - - runEndBlockOutputs
+      - LongLong
+      - 32
+      - ''
+    - - runEndVoluntaryContextSwitches
+      - LongLong
+      - 2068
+      - ''
+    - - runEndInvoluntaryContextSwitches
+      - LongLong
+      - 1587795
+      - ''
+    - - runDataRefEndUtc
+      - String
+      - '2020-10-08T19:55:08.675930'
+      - ''
+    - - runDataRefEndCpuTime
+      - Double
+      - 39.572229445
+      - ''
+    - - runDataRefEndUserTime
+      - Double
+      - 30.429891
+      - ''
+    - - runDataRefEndSystemTime
+      - Double
+      - 9.14246
+      - ''
+    - - runDataRefEndMaxResidentSetSize
+      - LongLong
+      - 1090460
+      - ''
+    - - runDataRefEndMinorPageFaults
+      - LongLong
+      - 1113025
+      - ''
+    - - runDataRefEndMajorPageFaults
+      - LongLong
+      - 27
+      - ''
+    - - runDataRefEndBlockInputs
+      - LongLong
+      - 395856
+      - ''
+    - - runDataRefEndBlockOutputs
+      - LongLong
+      - 207592
+      - ''
+    - - runDataRefEndVoluntaryContextSwitches
+      - LongLong
+      - 2069
+      - ''
+    - - runDataRefEndInvoluntaryContextSwitches
+      - LongLong
+      - 1588220
+      - ''
+- - runIsr
+  - PropertySet
+  - !<lsst.daf.base.PropertyList> []
+- - runIsr:isr:crosstalk
+  - PropertySet
+  - !<lsst.daf.base.PropertyList> []
+- - runIsr:isr:assembleCcd
+  - PropertySet
+  - !<lsst.daf.base.PropertyList> []
+- - runIsr:isr:strayLight
+  - PropertySet
+  - !<lsst.daf.base.PropertyList> []

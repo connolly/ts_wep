@@ -70,7 +70,7 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
         doDeblending = False
         useExpWcs = True
         donut_df = self.db.identifyDonuts(self.repoDir, [visitId],
-                                          self.filterType, defocalSetting,
+                                          defocalSetting,
                                           self.camera, pix2arcsec,
                                           templateModel,
                                           donutImgSize, deblendRadius,
@@ -82,7 +82,7 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
         # Without using expWcs
         useExpWcs = False
         donut_df_2 = self.db.identifyDonuts(self.repoDir, [visitId],
-                                            self.filterType, defocalSetting,
+                                            defocalSetting,
                                             self.camera, pix2arcsec,
                                             templateModel,
                                             donutImgSize, deblendRadius,
@@ -94,7 +94,7 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
         # With deblending turned on
         doDeblending = True
         donut_df_3 = self.db.identifyDonuts(self.repoDir, [visitId],
-                                            self.filterType, defocalSetting,
+                                            defocalSetting,
                                             self.camera, pix2arcsec,
                                             templateModel,
                                             donutImgSize, deblendRadius,
@@ -107,7 +107,7 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
         # With maxSensorStars set
         doDeblending = False
         donut_df_4 = self.db.identifyDonuts(self.repoDir, [visitId],
-                                            self.filterType, defocalSetting,
+                                            defocalSetting,
                                             self.camera, pix2arcsec,
                                             templateModel,
                                             donutImgSize, deblendRadius,

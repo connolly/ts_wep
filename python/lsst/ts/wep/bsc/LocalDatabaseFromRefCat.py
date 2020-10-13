@@ -37,7 +37,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
         pix2arcsec = settingFileInst.getSetting("pixelToArcsec")
         refButler = dafPersist.Butler(refCatDir)
         refObjLoader = LoadIndexedReferenceObjectsTask(butler=refButler)
-        skyDf = self.identifyDonuts(butlerRootPath, visitList, filterType,
+        skyDf = self.identifyDonuts(butlerRootPath, visitList,
                                     defocalState, camera, pix2arcsec,
                                     centroidTemplateType, donutImgSize,
                                     overlapDistance, doDeblending,
@@ -48,7 +48,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
 
         return
 
-    def identifyDonuts(self, butlerRootPath, visitList, filterType,
+    def identifyDonuts(self, butlerRootPath, visitList,
                        defocalState, camera, pix2arcsec,
                        templateType, donutImgSize, overlapDistance,
                        doDeblending, blendMagDiffLimit, expWcs,
@@ -65,7 +65,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
             if sensor not in sensorList:
                 continue
 
-            data_id = {'visit': visitOn, 'filter': filterType.toString(),
+            data_id = {'visit': visitOn,
                        'raftName': raft, 'detectorName': sensor}
             print(data_id)
 

@@ -418,7 +418,7 @@ class WepController(object):
                                            'deblend', 'data',
                                            'isolatedDonutTemplate')
         for fileName in os.listdir(detectorTemplateDir):
-            if fileName.endswith('.dat'):
+            if fileName.endswith('.txt'):
                 os.unlink(os.path.join(detectorTemplateDir, fileName))
 
         donutMap = dict()
@@ -461,7 +461,7 @@ class WepController(object):
 
                             # Save Image
                             templateFileName = os.path.join(detectorTemplateDir,
-                                                            '%s_template-%s.dat' %
+                                                            '%s_template-%s.txt' %
                                                             (imgType, abbrevName))
                             np.savetxt(templateFileName, templateImage)
                     detectorTemplateExists = True

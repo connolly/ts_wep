@@ -29,7 +29,7 @@ from lsst.ts.wep.bsc.LocalDatabaseFromImage import LocalDatabaseFromImage
 from lsst.ts.wep.bsc.LocalDatabaseFromRefCat import LocalDatabaseFromRefCat
 from lsst.ts.wep.Utility import mapFilterRefToG, getConfigDir
 from lsst.ts.wep.ParamReader import ParamReader
-from lsst.ts.wep.ctrlIntf.PhosimWcsSol import PhosimWcsSol
+from lsst.ts.wep.ctrlIntf.ButlerWcsSol import ButlerWcsSol
 
 
 class SourceSelector(object):
@@ -54,7 +54,7 @@ class SourceSelector(object):
         use_exp_wcs = self.settingFile.getSetting("expWcs")
         self.camera = CamFactory.createCam(camType)
         if use_exp_wcs is True:
-            exp_wcs = PhosimWcsSol()
+            exp_wcs = ButlerWcsSol()
             rerunDir = self.settingFile.getSetting("rerunName")
             isrDir = os.path.join(isrDir, 'rerun', rerunDir)
             exp_wcs.setIsrDir(isrDir)
@@ -291,9 +291,8 @@ class SourceSelector(object):
         filterType = self.getFilter()
         mappedFilterType = mapFilterRefToG(filterType)
 
-        if type(self.camera._wcs) == PhosimWcsSol:
-            self.camera._wcs.setWcsDataFromIsrDir(mappedFilterType,
-                                                  self.camera.getWfsCcdList(),
+        if type(self.camera._wcs) == ButlerWcsSol:
+            self.camera._wcs.setWcsDataFromIsrDir(self.camera.getWfsCcdList(),
                                                   visitList[0])
 
         # Write the sky data into the temporary table
@@ -320,9 +319,8 @@ class SourceSelector(object):
         filterType = self.getFilter()
         mappedFilterType = mapFilterRefToG(filterType)
 
-        if type(self.camera._wcs) == PhosimWcsSol:
-            self.camera._wcs.setWcsDataFromIsrDir(mappedFilterType,
-                                                  self.camera.getWfsCcdList(),
+        if type(self.camera._wcs) == ButlerWcsSol:
+            self.camera._wcs.setWcsDataFromIsrDir(self.camera.getWfsCcdList(),
                                                   visitList[0])
 
         self.db.createTable(mappedFilterType)
@@ -352,9 +350,8 @@ class SourceSelector(object):
         filterType = self.getFilter()
         mappedFilterType = mapFilterRefToG(filterType)
 
-        if type(self.camera._wcs) == PhosimWcsSol:
-            self.camera._wcs.setWcsDataFromIsrDir(mappedFilterType,
-                                                  self.camera.getWfsCcdList(),
+        if type(self.camera._wcs) == ButlerWcsSol:
+            self.camera._wcs.setWcsDataFromIsrDir(self.camera.getWfsCcdList(),
                                                   visitList[0])
 
         self.db.createTable(mappedFilterType)

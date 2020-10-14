@@ -4,14 +4,15 @@ from lsst.ts.wep.Utility import abbrevDetectorName, parseAbbrevDetectorName
 from lsst.daf.persistence import Butler
 from lsst import geom
 
-class PhosimWcsSol(AstWcsSol):
+
+class ButlerWcsSol(AstWcsSol):
     """World coordinate system (WCS) solution provided in Phosim headers."""
 
     def setIsrDir(self, isrDir):
 
         self.isrDir = isrDir
 
-    def setWcsDataFromIsrDir(self, filterType, ccdList, visitNum):
+    def setWcsDataFromIsrDir(self, ccdList, visitNum):
 
         self.butler = Butler(self.isrDir)
         wcsData = {}
@@ -20,7 +21,7 @@ class PhosimWcsSol(AstWcsSol):
             abbrevName = abbrevDetectorName(detector)
             raft, sensor = parseAbbrevDetectorName(abbrevName)
 
-            data_id = {'visit': visitNum, 'filter': filterType.toString(),
+            data_id = {'visit': visitNum,
                        'raftName': raft, 'detectorName': sensor}
             print(data_id)
 
@@ -51,10 +52,6 @@ class PhosimWcsSol(AstWcsSol):
                              includeDistortion=True):
         """Convert pixel coordinates into RA, Dec.
 
-        WARNING: This method does not account for apparent motion due to
-        parallax. This method is only useful for mapping positions on a
-        theoretical focal plane to positions on the celestial sphere.
-
         Parameters
         ----------
         xPix : float or numpy.ndarray
@@ -68,15 +65,11 @@ class PhosimWcsSol(AstWcsSol):
             value (in which case, all of the (xPix, yPix) points will be
             reckoned on that chip).
         epoch : float, optional
-            epoch is the mean epoch in years of the celestial coordinate
-            system. (the default is 2000.0.)
+            This doesn't do anything. Only included to keep structure the same
+            between WCS classes in ts_wep.
         includeDistortion : bool, optional
-            If True (default), then this method will expect the true pixel
-            coordinates with optical distortion included.  If False, this
-            method will expect TAN_PIXEL coordinates, which are the pixel
-            coordinates with estimated optical distortion removed. See the
-            documentation in afw.cameraGeom for more details. (the default is
-            True.)
+            This doesn't do anything. Only included to keep structure the same
+            between WCS classes in ts_wep.
 
         Returns
         -------
@@ -102,19 +95,26 @@ class PhosimWcsSol(AstWcsSol):
 
         if type(chipNameList) == str:
             for xp, yp in zip(xPix, yPix):
-                raDecSpherePt = self.wcsData[chipNameList].pixelToSky(geom.Point2D(xp, yp))
-                raDecPt = [raDecSpherePt.getRa().asDegrees(), raDecSpherePt.getDec().asDegrees()]
+                raDecSpherePt = self.wcsData[chipNameList].pixelToSky(
+                    geom.Point2D(xp, yp)
+                )
+                raDecPt = [raDecSpherePt.getRa().asDegrees(),
+                           raDecSpherePt.getDec().asDegrees()]
                 raDecList.append(raDecPt)
             raDec = np.array(raDecList).T
 
         elif type(chipNameList) == list:
 
-            assertMsg = "If chipName is not a str it must be list or array of same length as xPix and yPix"
+            assertMsg = str("If chipName is not a str it must be list" +
+                            " or array of same length as xPix and yPix")
             assert len(chipNameList) == len(xPix), assertMsg
 
             for xp, yp, chipId in zip(xPix, yPix, chipNameList):
-                raDecSpherePt = self.wcsData[chipId].pixelToSky(geom.Point2D(xp, yp))
-                raDecPt = [raDecSpherePt.getRa().asDegrees(), raDecSpherePt.getDec().asDegrees()]
+                raDecSpherePt = self.wcsData[chipId].pixelToSky(
+                    geom.Point2D(xp, yp)
+                )
+                raDecPt = [raDecSpherePt.getRa().asDegrees(),
+                           raDecSpherePt.getDec().asDegrees()]
                 raDecList.append(raDecPt)
             raDec = np.array(raDecList).T
 
@@ -140,15 +140,11 @@ class PhosimWcsSol(AstWcsSol):
             falls on, and return pixel coordinates for each (RA, Dec) pair on
             the appropriate chip. (the default is None.)
         epoch : float, optional
-            epoch is the mean epoch in years of the celestial coordinate
-            system. (the default is 2000.0.)
+            This doesn't do anything. Only included to keep structure the same
+            between WCS classes in ts_wep.
         includeDistortion : bool, optional
-            If True (default), then this method will expect the true pixel
-            coordinates with optical distortion included.  If False, this
-            method will expect TAN_PIXEL coordinates, which are the pixel
-            coordinates with estimated optical distortion removed. See the
-            documentation in afw.cameraGeom for more details. (the default is
-            True.)
+            This doesn't do anything. Only included to keep structure the same
+            between WCS classes in ts_wep.
 
         Returns
         -------
@@ -175,7 +171,7 @@ class PhosimWcsSol(AstWcsSol):
             for raVal, decVal in zip(ra, dec):
                 pixelPt = self.wcsData[chipNameList].skyToPixel(
                     geom.SpherePoint(raVal, decVal, geom.degrees)
-                    )
+                )
                 pixelList.append(pixelPt)
             pixelCoords = np.array(pixelList).T
 
@@ -183,7 +179,7 @@ class PhosimWcsSol(AstWcsSol):
             for raVal, decVal, chipId in zip(ra, dec, chipNameList):
                 pixelPt = self.wcsData[chipId].skyToPixel(
                     geom.SpherePoint(raVal, decVal, geom.degrees)
-                    )
+                )
                 pixelList.append(pixelPt)
             pixelCoords = np.array(pixelList).T
 

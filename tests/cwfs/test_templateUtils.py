@@ -9,10 +9,6 @@ from lsst.ts.wep.Utility import getConfigDir
 class TestTemplateUtils(unittest.TestCase):
     """Test the Template Utility functions."""
 
-    def setUp(self):
-
-        pass
-
     def testCreateTemplateImage(self):
 
         sensorName = 'R22_S11'

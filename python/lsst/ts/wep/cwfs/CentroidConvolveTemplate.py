@@ -1,7 +1,7 @@
 import numpy as np
 
 from lsst.ts.wep.cwfs.CentroidRandomWalk import CentroidRandomWalk
-from scipy.signal import convolve, correlate
+from scipy.signal import correlate
 from sklearn.cluster import KMeans
 
 
@@ -34,7 +34,7 @@ class CentroidConvolveTemplate(CentroidRandomWalk):
         ranked_convolve = ranked_convolve[:cutoff]
         nx, ny = np.unravel_index(ranked_convolve, np.shape(imageBinary))
 
-        kmeans = KMeans(n_clusters=n_donuts).fit(np.array([ny, nx]).T)
+        kmeans = KMeans(n_clusters=n_donuts).fit(np.array([nx, ny]).T)
         labels = kmeans.labels_
 
         cent_x = []

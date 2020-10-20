@@ -418,7 +418,7 @@ class WepController(object):
                                            'deblend', 'data',
                                            'isolatedDonutTemplate')
         for fileName in os.listdir(detectorTemplateDir):
-            if fileName.endswith('.dat'):
+            if fileName.endswith('.txt'):
                 os.unlink(os.path.join(detectorTemplateDir, fileName))
 
         donutMap = dict()
@@ -461,7 +461,7 @@ class WepController(object):
 
                             # Save Image
                             templateFileName = os.path.join(detectorTemplateDir,
-                                                            '%s_template-%s.dat' %
+                                                            '%s_template-%s.txt' %
                                                             (imgType, abbrevName))
                             np.savetxt(templateFileName, templateImage)
                     detectorTemplateExists = True
@@ -479,11 +479,11 @@ class WepController(object):
                     # Get the segment of image
                     if (ccdImg is not None):
                         (
-                            singleSciNeiImg, 
-                            allStarPosX, 
-                            allStarPosY, 
+                            singleSciNeiImg,
+                            allStarPosX,
+                            allStarPosY,
                             magRatio,
-                            offsetX, 
+                            offsetX,
                             offsetY,
                         ) = self.sourProc.getSingleTargetImage(
                                 ccdImg, nbrStar, starIdIdx, filterType
@@ -565,7 +565,7 @@ class WepController(object):
                             if postageImg:  # print image after resizing
                                 fname = preFname+'_imgDeblend_resized'+postFname
                                 np.savetxt(postageImgDir+'/'+fname,imgDeblend)
-                                if verbose: 
+                                if verbose:
                                     print('Saving postage stamp image as %s'%fname)
 
                         # Rotate the image if the sensor is the corner
@@ -674,7 +674,6 @@ class WepController(object):
         dict
             Donut image map with calculated wavefront error.
         """
-        
         print('\n Calculating the wavefront error based on the donut map')
         # initialize the storage array
         content = "# abbrevDetectorName\tfocalPlane\tstarId\txpos\typos\n"

@@ -88,7 +88,7 @@ class TestLocalDatabaseFromRefCat(unittest.TestCase):
         useExpWcs = False
         refObjLoader = LoadIndexedReferenceObjectsTask(butler=self.refButler)
         donut_df = self.db.identifyDonuts(self.repoDir, [visitId],
-                                          self.filterType, defocalSetting,
+                                          defocalSetting,
                                           self.camera, pix2arcsec,
                                           templateModel,
                                           donutImgSize, deblendRadius,

@@ -21,7 +21,7 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
         doDeblending = settingFileInst.getSetting("doDeblending")
         maxSensorStars = settingFileInst.getSetting("maxSensorStars")
         pix2arcsec = settingFileInst.getSetting("pixelToArcsec")
-        skyDf = self.identifyDonuts(butlerRootPath, visitList, filterType,
+        skyDf = self.identifyDonuts(butlerRootPath, visitList,
                                     defocalState, camera, pix2arcsec,
                                     centroidTemplateType, donutImgSize,
                                     overlapDistance, doDeblending,
@@ -31,7 +31,7 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
 
         return
 
-    def identifyDonuts(self, butlerRootPath, visitList, filterType,
+    def identifyDonuts(self, butlerRootPath, visitList,
                        defocalState, camera, pix2arcsec,
                        templateType, donutImgSize, overlapDistance,
                        doDeblending, expWcs, maxSensorStars=None):
@@ -47,7 +47,7 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
             abbrevName = abbrevDetectorName(detector)
             raft, sensor = parseAbbrevDetectorName(abbrevName)
 
-            data_id = {'visit': visitOn, 'filter': filterType.toString(),
+            data_id = {'visit': visitOn,
                        'raftName': raft, 'detectorName': sensor}
             # only query data that exists
             if not butler.datasetExists('postISRCCD', data_id):

@@ -1,34 +1,62 @@
 import os
 import numpy as np
-from lsst.ts.wep.Utility import DefocalType, getConfigDir, \
+from lsst.ts.wep.Utility import getConfigDir, \
     CamType, abbrevDetectorName, readPhoSimSettingData
 from lsst.ts.wep.cwfs.Instrument import Instrument
 from lsst.ts.wep.cwfs.CompensableImage import CompensableImage
 
 
 def createTemplateImage(defocalState, sensorName, pix2arcsec,
-                        templateType, donutImgSize):
+                        templateType, donutImgSize, configDir=None):
 
     """
     Create/grab donut template.
 
     Parameters
     ----------
+    defocalState: str
+        'extra' or 'intra'
+
     sensorName : str
         Abbreviated sensor name.
+
+    pix2arcsec: float
+        Pixel Scale in arcsec
+
+    templateType: str
+        Available template options are:
+            - phosim
+                - Use template derived from Phosim simulations
+            - model
+                - Use the donut model from CompensableImage class
+            - isolatedDonutFromImage
+                - Use an isolated donut previously found in an image
+                  and saved with filenames as follows:
+                  "{defocalState}_template-{sensorName}.txt"
+                - Note does not actually find the templates for you
+
+    donutImgSize: int
+        Size of donut postage stamp in pixels
+
+    configDir: None or str
+        If None will default to ts_wep/policy/deblend/data to look
+        for templates when using 'phosim' or 'isolatedDonutFromImage'
     """
 
-    configDir = getConfigDir()
+    # If configDir is not specified set defaults for phosim or isolatedDonut
+    if configDir is None:
+        configDir = getConfigDir()
+        if templateType != 'model':
+            configDir = os.path.join(configDir,
+                                     'deblend', 'data', templateType)
 
     if templateType == 'phosim':
-        if defocalState == DefocalType.Extra:
-            template_filename = os.path.join(configDir, 'deblend',
-                                             'data',
+        if defocalState == 'extra':
+            template_filename = os.path.join(configDir,
                                              'extra_template-%s.txt' %
                                              sensorName)
-        elif defocalState == DefocalType.Intra:
-            template_filename = os.path.join(configDir, 'deblend',
-                                             'data',
+        elif defocalState == 'intra':
+            template_filename = os.path.join(configDir,
                                              'intra_template-%s.txt' %
                                              sensorName)
         template_array = np.genfromtxt(template_filename)
@@ -82,15 +110,13 @@ def createTemplateImage(defocalState, sensorName, pix2arcsec,
         template_array = img.cMask
 
     elif templateType == 'isolatedDonutFromImage':
-        if defocalState == DefocalType.Extra:
-            template_filename = os.path.join(configDir, 'deblend',
-                                             'data', 'isolatedDonutTemplate',
-                                             'extra_template-%s.dat' %
+        if defocalState == 'extra':
+            template_filename = os.path.join(configDir,
+                                             'extra_template-%s.txt' %
                                              sensorName)
-        elif defocalState == DefocalType.Intra:
-            template_filename = os.path.join(configDir, 'deblend',
-                                             'data', 'isolatedDonutTemplate',
-                                             'intra_template-%s.dat' %
+        elif defocalState == 'intra':
+            template_filename = os.path.join(configDir,
+                                             'intra_template-%s.txt' %
                                              sensorName)
         template_array = np.genfromtxt(template_filename)
         template_array[template_array < 0] = 0.

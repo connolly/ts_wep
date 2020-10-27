@@ -33,3 +33,4 @@ pytest_session.txt
 
 # One time use templates from image
 policy/deblend/data/isolatedDonutTemplate/*.dat
+policy/deblend/data/isolatedDonutTemplate/*.txt

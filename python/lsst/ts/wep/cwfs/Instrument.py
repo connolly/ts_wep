@@ -113,6 +113,7 @@ class Instrument(object):
         ValueError
             Camera type is not supported.
         """
+
         if camType == CamType.LsstCam:
             return "lsst"
         elif camType == CamType.LsstFamCam:

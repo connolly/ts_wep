@@ -9,6 +9,7 @@ from lsst.ts.wep.bsc.LocalDatabaseFromRefCat import LocalDatabaseFromRefCat
 from lsst.ts.wep.bsc.CamFactory import CamFactory
 from lsst.ts.wep.Utility import getModulePath, FilterType, CamType
 from lsst.ts.wep.ParamReader import ParamReader
+from lsst.ts.wep.cwfs.TemplateUtils import createTemplateImage
 
 
 class TestLocalDatabaseFromRefCat(unittest.TestCase):
@@ -87,7 +88,9 @@ class TestLocalDatabaseFromRefCat(unittest.TestCase):
         blendDiffLimit = None
         useExpWcs = False
         refObjLoader = LoadIndexedReferenceObjectsTask(butler=self.refButler)
-        donut_df = self.db.identifyDonuts(self.repoDir, [visitId],
+        donut_df = self.db.identifyDonuts(self.repoDir,
+                                          createTemplateImage,
+                                          [visitId],
                                           defocalSetting,
                                           self.camera, pix2arcsec,
                                           templateModel,
@@ -119,9 +122,10 @@ class TestLocalDatabaseFromRefCat(unittest.TestCase):
         self._createParamFile()
         skyFileName = os.path.join(self.dataDir, 'skyFile.txt')
         instFileReader = ParamReader(self.paramFileName)
-        self.db.insertDataFromRefCat(self.repoDir, instFileReader,
-                                     [9006041], 'extra', self.filterType,
-                                     self.camera, fileOut=skyFileName)
+        self.db.insertDataFromRefCat(self.repoDir, createTemplateImage,
+                                     instFileReader, [9006041], 'extra',
+                                     self.filterType, self.camera,
+                                     fileOut=skyFileName)
         idAll = self.db.getAllId(self.filterType)
         self.assertTrue(len(idAll), 45)
 

@@ -8,6 +8,7 @@ from lsst.ts.wep.bsc.LocalDatabaseFromImage import LocalDatabaseFromImage
 from lsst.ts.wep.bsc.CamFactory import CamFactory
 from lsst.ts.wep.Utility import getModulePath, FilterType, CamType
 from lsst.ts.wep.ParamReader import ParamReader
+from lsst.ts.wep.cwfs.TemplateUtils import createTemplateImage
 
 
 class TestLocalDatabaseFromImage(unittest.TestCase):
@@ -69,7 +70,9 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
         deblendRadius = 160
         doDeblending = False
         useExpWcs = True
-        donut_df = self.db.identifyDonuts(self.repoDir, [visitId],
+        donut_df = self.db.identifyDonuts(self.repoDir,
+                                          createTemplateImage,
+                                          [visitId],
                                           defocalSetting,
                                           self.camera, pix2arcsec,
                                           templateModel,
@@ -81,7 +84,9 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
 
         # Without using expWcs
         useExpWcs = False
-        donut_df_2 = self.db.identifyDonuts(self.repoDir, [visitId],
+        donut_df_2 = self.db.identifyDonuts(self.repoDir,
+                                            createTemplateImage,
+                                            [visitId],
                                             defocalSetting,
                                             self.camera, pix2arcsec,
                                             templateModel,
@@ -93,7 +98,9 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
 
         # With deblending turned on
         doDeblending = True
-        donut_df_3 = self.db.identifyDonuts(self.repoDir, [visitId],
+        donut_df_3 = self.db.identifyDonuts(self.repoDir,
+                                            createTemplateImage,
+                                            [visitId],
                                             defocalSetting,
                                             self.camera, pix2arcsec,
                                             templateModel,
@@ -106,7 +113,9 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
 
         # With maxSensorStars set
         doDeblending = False
-        donut_df_4 = self.db.identifyDonuts(self.repoDir, [visitId],
+        donut_df_4 = self.db.identifyDonuts(self.repoDir,
+                                            createTemplateImage,
+                                            [visitId],
                                             defocalSetting,
                                             self.camera, pix2arcsec,
                                             templateModel,
@@ -130,9 +139,10 @@ class TestLocalDatabaseFromImage(unittest.TestCase):
         self._createParamFile()
         skyFileName = os.path.join(self.dataDir, 'skyFile.txt')
         instFileReader = ParamReader(self.paramFileName)
-        self.db.insertDataFromImage(self.repoDir, instFileReader,
-                                    [9005000], 'extra', self.filterType,
-                                    self.camera, fileOut=skyFileName)
+        self.db.insertDataFromImage(self.repoDir, createTemplateImage,
+                                    instFileReader, [9005000], 'extra',
+                                    self.filterType, self.camera,
+                                    fileOut=skyFileName)
         idAll = self.db.getAllId(self.filterType)
         self.assertTrue(len(idAll), 2)
 

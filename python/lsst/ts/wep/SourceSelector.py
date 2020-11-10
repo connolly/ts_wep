@@ -30,6 +30,7 @@ from lsst.ts.wep.bsc.LocalDatabaseFromRefCat import LocalDatabaseFromRefCat
 from lsst.ts.wep.Utility import mapFilterRefToG, getConfigDir
 from lsst.ts.wep.ParamReader import ParamReader
 from lsst.ts.wep.ctrlIntf.ButlerWcsSol import ButlerWcsSol
+from lsst.ts.wep.cwfs.TemplateUtils import createTemplateImage
 
 
 class SourceSelector(object):
@@ -325,7 +326,8 @@ class SourceSelector(object):
 
         self.db.createTable(mappedFilterType)
 
-        self.db.insertDataFromImage(butlerRootPath, self.settingFile,
+        self.db.insertDataFromImage(butlerRootPath, createTemplateImage,
+                                    self.settingFile,
                                     visitList, defocalState,
                                     mappedFilterType,
                                     self.camera, skiprows=1)
@@ -356,7 +358,8 @@ class SourceSelector(object):
 
         self.db.createTable(mappedFilterType)
 
-        self.db.insertDataFromRefCat(butlerRootPath, self.settingFile,
+        self.db.insertDataFromRefCat(butlerRootPath, createTemplateImage,
+                                     self.settingFile,
                                      visitList, defocalState,
                                      mappedFilterType,
                                      self.camera, skiprows=1)

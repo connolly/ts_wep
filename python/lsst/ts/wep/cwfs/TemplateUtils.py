@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from lsst.ts.wep.Utility import getConfigDir, \
-    CamType, abbrevDetectorName, readPhoSimSettingData
+    CamType, readPhoSimSettingData
 from lsst.ts.wep.cwfs.Instrument import Instrument
 from lsst.ts.wep.cwfs.CompensableImage import CompensableImage
 

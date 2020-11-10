@@ -1,7 +1,6 @@
 import lsst.daf.persistence as dafPersist
 from lsst.ts.wep.bsc.DonutDetector import DonutDetector
 from lsst.ts.wep.bsc.LocalDatabaseForStarFile import LocalDatabaseForStarFile
-from lsst.ts.wep.cwfs.TemplateUtils import createTemplateImage
 from lsst.ts.wep.Utility import abbrevDetectorName, parseAbbrevDetectorName
 
 
@@ -9,8 +8,8 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
 
     PRE_TABLE_NAME = "StarTable"
 
-    def insertDataFromImage(self, butlerRootPath, settingFileInst,
-                            visitList, defocalState,
+    def insertDataFromImage(self, butlerRootPath, templateCreator,
+                            settingFileInst, visitList, defocalState,
                             filterType, camera,
                             skiprows=1, fileOut='foundDonuts.txt'):
 
@@ -21,7 +20,7 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
         doDeblending = settingFileInst.getSetting("doDeblending")
         maxSensorStars = settingFileInst.getSetting("maxSensorStars")
         pix2arcsec = settingFileInst.getSetting("pixelToArcsec")
-        skyDf = self.identifyDonuts(butlerRootPath, visitList,
+        skyDf = self.identifyDonuts(butlerRootPath, templateCreator, visitList,
                                     defocalState, camera, pix2arcsec,
                                     centroidTemplateType, donutImgSize,
                                     overlapDistance, doDeblending,
@@ -31,8 +30,8 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
 
         return
 
-    def identifyDonuts(self, butlerRootPath, visitList,
-                       defocalState, camera, pix2arcsec,
+    def identifyDonuts(self, butlerRootPath, templateCreator,
+                       visitList, defocalState, camera, pix2arcsec,
                        templateType, donutImgSize, overlapDistance,
                        doDeblending, expWcs, maxSensorStars=None):
 
@@ -56,9 +55,9 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
             print(data_id)
 
             postISR = butler.get('postISRCCD', **data_id)
-            template = createTemplateImage(defocalState,
-                                           abbrevName, pix2arcsec,
-                                           templateType, donutImgSize)
+            template = templateCreator(defocalState,
+                                       abbrevName, pix2arcsec,
+                                       templateType, donutImgSize)
             donut_detect = DonutDetector(template)
 
             donut_df, image_thresh = donut_detect.detectDonuts(postISR,
@@ -74,7 +73,6 @@ class LocalDatabaseFromImage(LocalDatabaseForStarFile):
                 sensor_results_df = sensor_results_df.reset_index(drop=True)
             else:
                 sensor_results_df = donut_df
-
 
             if maxSensorStars is not None:
                 sensor_results_df = sensor_results_df.iloc[:maxSensorStars]

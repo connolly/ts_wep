@@ -1,4 +1,3 @@
-import os
 import numpy as np
 import pandas as pd
 import lsst.daf.persistence as dafPersist
@@ -13,7 +12,6 @@ from lsst.meas.astrom import AstrometryTask
 from lsst.afw.image.utils import defineFilter
 from lsst.ts.wep.bsc.DonutDetector import DonutDetector
 from lsst.ts.wep.bsc.LocalDatabaseFromImage import LocalDatabaseFromImage
-from lsst.ts.wep.cwfs.TemplateUtils import createTemplateImage
 from lsst.ts.wep.Utility import abbrevDetectorName, parseAbbrevDetectorName
 
 
@@ -21,8 +19,8 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
 
     PRE_TABLE_NAME = "StarTable"
 
-    def insertDataFromRefCat(self, butlerRootPath, settingFileInst,
-                             visitList, defocalState,
+    def insertDataFromRefCat(self, butlerRootPath, templateCreator,
+                             settingFileInst, visitList, defocalState,
                              filterType, camera,
                              skiprows=1, fileOut='foundDonuts.txt'):
 
@@ -37,7 +35,7 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
         pix2arcsec = settingFileInst.getSetting("pixelToArcsec")
         refButler = dafPersist.Butler(refCatDir)
         refObjLoader = LoadIndexedReferenceObjectsTask(butler=refButler)
-        skyDf = self.identifyDonuts(butlerRootPath, visitList,
+        skyDf = self.identifyDonuts(butlerRootPath, templateCreator, visitList,
                                     defocalState, camera, pix2arcsec,
                                     centroidTemplateType, donutImgSize,
                                     overlapDistance, doDeblending,
@@ -48,8 +46,8 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
 
         return
 
-    def identifyDonuts(self, butlerRootPath, visitList,
-                       defocalState, camera, pix2arcsec,
+    def identifyDonuts(self, butlerRootPath, templateCreator,
+                       visitList, defocalState, camera, pix2arcsec,
                        templateType, donutImgSize, overlapDistance,
                        doDeblending, blendMagDiffLimit, expWcs,
                        refObjLoader, maxSensorStars=None):
@@ -72,9 +70,9 @@ class LocalDatabaseFromRefCat(LocalDatabaseFromImage):
             # TODO: Rename this to reflect this is postISR not raw image.
             raw = butler.get('postISRCCD', **data_id)
 
-            template = createTemplateImage(defocalState,
-                                           abbrevName, pix2arcsec,
-                                           templateType, donutImgSize)
+            template = templateCreator(defocalState,
+                                       abbrevName, pix2arcsec,
+                                       templateType, donutImgSize)
             donut_detect = DonutDetector(template)
             # min_overlap_distance = 10. # Use for detecting for ref_cat match
             # Astrometry WCS matching requires at least 7 sources

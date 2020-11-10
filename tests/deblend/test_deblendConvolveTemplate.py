@@ -6,6 +6,7 @@ import shutil
 from lsst.ts.wep.deblend.DeblendConvolveTemplate import \
     DeblendConvolveTemplate
 from lsst.ts.wep.Utility import getModulePath
+from lsst.ts.wep.cwfs.TemplateUtils import createTemplateImage
 
 
 class TestCentroidConvolveTemplate(unittest.TestCase):
@@ -76,7 +77,8 @@ class TestCentroidConvolveTemplate(unittest.TestCase):
                    singleDonut)
         iniXY = [[50, 80]]
         img, adapImg, x, y = self.deblendConvolve._getBinaryImages(
-            doubleDonut, iniXY, defocalType=2, sensorName='R22_S11',
+            doubleDonut, iniXY, templateCreator=createTemplateImage,
+            defocalType=2, sensorName='R22_S11',
             templateType='isolatedDonutFromImage', templateDir=self.dataDir
         )
         self.assertEqual(x, 0)
@@ -92,7 +94,7 @@ class TestCentroidConvolveTemplate(unittest.TestCase):
         #            imgToDeblend)
         imgDeblend, realcx, realcy = \
             self.deblendConvolve.deblendDonut(
-                imgToDeblend, iniGuessXY,
+                imgToDeblend, iniGuessXY, templateCreator=createTemplateImage,
                 defocalType=1, sensorName='R22_S11',
                 templateType='isolatedDonutFromImage',
                 templateDir=self.dataDir

@@ -116,7 +116,8 @@ class WEPCalculation(object):
         isrWrapper = CamIsrWrapper(self.isrDir)
 
         bscDbType = self._getBscDbType()
-        sourSelc = self._configSourceSelector(camType, bscDbType, settingFileName)
+        sourSelc = self._configSourceSelector(camType, bscDbType,
+                                              settingFileName)
 
         sourProc = SourceProcessor(settingFileName=settingFileName)
         wfsEsti = self._configWfEstimator(camType)
@@ -155,7 +156,6 @@ class WEPCalculation(object):
         SourceSelector
             Configured source selector.
         """
-
 
         sourSelc = SourceSelector(camType, bscDbType, self.isrDir,
                                   settingFileName=settingFileName)
@@ -357,8 +357,8 @@ class WEPCalculation(object):
 
         return self.rotSkyPos
 
-    def calculateWavefrontErrors(self, rawExpData, extraRawExpData=None,postageImg=False,
-                                postageImgDir=None):
+    def calculateWavefrontErrors(self, rawExpData, extraRawExpData=None,
+                                 postageImg=False, postageImgDir=None):
         """Calculate the wavefront errors.
 
         Parameters
@@ -680,17 +680,17 @@ class WEPCalculation(object):
         """
         # repackege the donutMap for corner WFS:
         # it contains eg. 'R:4,4 S:0,0,A', 'R:4,4 S:0,0,B',
-        # which are identical. Here we pick the first one and 
-        # rename to agree with name R:4,4 S:0,0 in 
+        # which are identical. Here we pick the first one and
+        # rename to agree with name R:4,4 S:0,0 in
         # sensorNameToIdFileName
         detectors = list(donutMap.keys())
-        if detectors[0].endswith(('A','B')):
-        	donutMapAbbrev = {}
-	        for detector in detectors:
-	            #just clip the ',A' or ',B' part, and populate the new dict
-	            donutMapAbbrev[detector[:-2]] = donutMap[detector]
-	        donutMap = donutMapAbbrev.copy()
-        
+        if detectors[0].endswith(('A', 'B')):
+            donutMapAbbrev = {}
+            for detector in detectors:
+                # just clip the ',A' or ',B' part, and populate the new dict
+                donutMapAbbrev[detector[:-2]] = donutMap[detector]
+            donutMap = donutMapAbbrev.copy()
+
         mapSensorNameAndId = MapSensorNameAndId(sensorNameToIdFileName)
         listOfWfErr = []
         for sensor, donutList in donutMap.items():

@@ -7,7 +7,6 @@ from scipy.spatial.distance import cdist
 from lsst.ts.wep.Utility import CentroidFindType, DefocalType
 from lsst.ts.wep.cwfs.CentroidFindFactory import CentroidFindFactory
 from lsst.ts.wep.deblend.DeblendAdapt import DeblendAdapt
-from lsst.ts.wep.cwfs.TemplateUtils import createTemplateImage
 
 
 class DeblendConvolveTemplate(DeblendAdapt):
@@ -20,7 +19,8 @@ class DeblendConvolveTemplate(DeblendAdapt):
         self._centroidFind = CentroidFindFactory.createCentroidFind(
             CentroidFindType.ConvolveTemplate)
 
-    def _getBinaryImages(self, imgToDeblend, iniGuessXY, defocalType=1,
+    def _getBinaryImages(self, imgToDeblend, iniGuessXY,
+                         templateCreator=None, defocalType=1,
                          sensorName=None, pix2arcsec=0.2,
                          templateType='model', donutImgSize=160,
                          templateDir=None, **kwargs):
@@ -71,6 +71,8 @@ class DeblendConvolveTemplate(DeblendAdapt):
         # Check the number of neighboring star
         if sensorName is None:
             raise ValueError("Need to specify sensor.")
+        if templateCreator is None:
+            raise ValueError("Need to specify template creator function.")
 
         if defocalType == DefocalType.Intra:
             defocalState = 'intra'
@@ -80,9 +82,9 @@ class DeblendConvolveTemplate(DeblendAdapt):
             raise ValueError("DefocalType value not recognized.")
 
         # Get template and appropriate binary images
-        templateImg = createTemplateImage(defocalState, sensorName,
-                                          pix2arcsec, templateType,
-                                          donutImgSize, templateDir)
+        templateImg = templateCreator(defocalState, sensorName,
+                                      pix2arcsec, templateType,
+                                      donutImgSize, templateDir)
         templateImgBinary = self._getImgBinaryAdapt(templateImg)
         templateImgBinary = binary_closing(templateImgBinary)
         templatecx, templatecy, templateR = \

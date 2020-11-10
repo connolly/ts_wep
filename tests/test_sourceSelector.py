@@ -36,7 +36,10 @@ class TestSourceSelector(BaseBscTestCase, unittest.TestCase):
 
         # Get the path of module
         self.modulePath = getModulePath()
-        self.sourSelc = SourceSelector(CamType.ComCam, BscDbType.LocalDb)
+        self.repoDir = os.path.join(self.modulePath, "tests", "testData",
+                                    "testRepo", "rerun", "run1")
+        self.sourSelc = SourceSelector(CamType.ComCam, BscDbType.LocalDb,
+                                       self.repoDir)
 
         # Set the survey parameters
         ra = 0.0

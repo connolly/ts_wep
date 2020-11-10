@@ -2,15 +2,15 @@
 from .ButlerWrapper import ButlerWrapper
 from .CamDataCollector import CamDataCollector
 from .CamIsrWrapper import CamIsrWrapper
-from .SourceSelector import SourceSelector
 from .SourceProcessor import SourceProcessor
 from .WepController import WepController
 from .Utility import FilterType, CamType, BscDbType
 
-# This class needs the scons to build the cython code. In the Jenkins test,
+# These classes need the scons to build the .so library. In the Jenkins test,
 # this will be a problem to import.
 try:
     from .WfEstimator import WfEstimator
+    from .SourceSelector import SourceSelector
 except ImportError:
     pass
 

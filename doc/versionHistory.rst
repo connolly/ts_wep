@@ -6,6 +6,14 @@
 Version History
 ##################
 
+.. _lsst.ts.wep-1.5.2:
+
+-------------
+1.5.2
+-------------
+
+* Add ``DonutTemplatePhosim`` class.
+
 .. _lsst.ts.wep-1.5.1:
 
 -------------
